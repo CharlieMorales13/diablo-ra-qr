@@ -12,7 +12,7 @@ Minijuego de **realidad aumentada** para el teléfono que se activa con un **mar
 |---|---|
 | **Objetivo** | Atrapar al intruso en las 12 puertas. |
 | **Reglas** | Cada puerta muestra una pista arriba y 3 opciones abajo. Cambia de carril con ◀ ▶ o tocando la opción. |
-| **Puntaje** | Acierto: +100 con combo x2 y x3, y el Tiliche acelera. Tlayuda: +25. Maguey: −30 y tropiezas. |
+| **Puntaje** | Acierto: +100 con combo x2 y x3, y el Tiliche acelera. Mazorca: +25. Maguey: −30 y tropiezas. |
 | **Vidas** | 3 ❤. Cada intruso que se escapa cuesta una. |
 | **Fin** | Al cruzar las 12 puertas o al perder las 3 vidas. Se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
 | **Retroalimentación** | Los botones se encogen y suenan al tocarlos. Un acierto lanza confeti, un acorde y una vibración corta. Un error hace un destello rojo, un zumbido y una vibración doble. Si pierdes el marcador, el juego se pausa. |
@@ -26,7 +26,7 @@ El banco tiene **41 preguntas para oaxaqueños**: regiones, los 7 moles, magueye
 - Web Audio API: música y efectos sintetizados en código.
 - Vibration API: retroalimentación háptica en Android.
 - Python + Pillow + qrcode + OpenCV: generación y análisis del marcador.
-- [Meshy](https://www.meshy.ai/): generación de los modelos 3D.
+- Blender 5.2: adaptación de los modelos CC0 de [Kenney](https://kenney.nl) (traje de Tiliche, texturas incrustadas).
 
 No hay paso de compilación: es HTML + JavaScript (módulos ES) y las librerías se cargan desde jsDelivr.
 
@@ -40,7 +40,8 @@ js/preguntas.js       banco de preguntas "atrapa al intruso"
 js/modelos.js         carga de GLB con respaldo procedural
 js/audio.js           música y efectos con Web Audio
 assets/targets.mind   marcador compilado para MindAR
-assets/models/        tiliche.glb, maguey.glb, tlayuda.glb
+assets/models/        tiliche.glb, maguey.glb, mazorca.glb
+modelos/              script de Blender que prepara los modelos
 marcador/             generador del marcador y compilador de MindAR
 ```
 
@@ -56,7 +57,16 @@ marcador/             generador del marcador y compilador de MindAR
    ```
    La cámara solo funciona con **HTTPS** o en `localhost`. Para probar en el teléfono, publícalo (paso 3) o usa un túnel HTTPS.
 3. Publicación: sube la carpeta tal cual a **Vercel** (`vercel deploy`) o a **Cloudflare Pages** (directorio de salida `/`, sin comando de build).
-4. Imprime `marcador/marcador.png` (mínimo 10 cm de lado) o ábrelo en otra pantalla, abre la página en Chrome para Android, toca **Jugar** y apunta al marcador.
+4. Imprime `marcador/marcador.png` (mínimo 10 cm de lado) o ábrelo en otra pantalla.
+
+### Flujo con el marcador
+
+1. **Escanea el QR del marcador** con la cámara normal del teléfono: el QR contiene la URL del juego y abre la página.
+2. Toca **Jugar**. Se abre la cámara de RA (el navegador pide permiso una vez).
+3. **Apunta al mismo marcador.** En cuanto MindAR lo reconoce, aparece el camino sobre el papel, corre la cuenta regresiva 3, 2, 1 y empieza la partida.
+4. Si el marcador sale de cuadro, el juego se pausa y continúa al volver a verlo.
+
+El marcador cumple dos funciones: el QR lleva a la experiencia y el diseño completo (grecas, letras, esquirlas) es la imagen que rastrea MindAR para anclar el juego.
 
 **Modo demo sin cámara:** `index.html?demo` dibuja el marcador en pantalla para probar en la computadora.
 
@@ -75,7 +85,21 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 
 ### Modelos 3D
 
-El juego carga `assets/models/tiliche.glb`, `maguey.glb` y `tlayuda.glb`. Si falta alguno, usa un modelo procedural hecho con primitivas de three.js, así que siempre funciona. Si el GLB del Tiliche trae una animación cuyo nombre contiene *run*, se reproduce al ritmo de la velocidad del juego. Cada modelo se escala solo (Tiliche 24 cm, maguey 12 cm y tlayuda 3 cm en la escala del marcador) y pesa menos de 5 MB.
+Los tres modelos son de uso público (**CC0**) de [Kenney](https://kenney.nl) y se adaptan con `modelos/preparar_modelos.py` en Blender:
+
+| Modelo | Base CC0 | Adaptación | Peso |
+|---|---|---|---|
+| `tiliche.glb` | *Mini Characters 1.0* · `character-male-c` (con animaciones) | Traje de retazos de tela en 6 colores pesado a los huesos (se mueve al correr), sombrero de palma y barba y bigote de máscara de viejito. Solo conserva las animaciones `sprint` e `idle`. | 381 KB |
+| `maguey.glb` | *Nature Kit 2.1* · `plant_flatShort` | Recoloreado en verde azulado de agave | 3 KB |
+| `mazorca.glb` | *Food Kit 2.0* · `corn` | Textura incrustada en el GLB | 20 KB |
+
+Para regenerarlos, descarga y descomprime los tres kits de kenney.nl en una carpeta y corre:
+
+```bash
+blender --background --python modelos/preparar_modelos.py -- <carpeta_con_los_kits>
+```
+
+En el juego cada modelo se escala solo (Tiliche 24 cm, maguey 12 cm, mazorca 7 cm en la escala del marcador), la animación `sprint` se acelera con la velocidad del Tiliche y, si faltara un GLB, se usa un respaldo procedural.
 
 ## Capturas
 
@@ -89,9 +113,10 @@ El juego carga `assets/models/tiliche.glb`, `maguey.glb` y `tlayuda.glb`. Si fal
 |---|---|---|
 | Código del juego | Carlos Antonio Gómez Morales | MIT (ver `LICENSE`) |
 | Marcador "Atrapa al intruso" | Carlos Antonio Gómez Morales | MIT |
-| Modelo 3D Tiliche (`tiliche.glb`) | Generado en Meshy AI por Carlos Gómez | CC BY 4.0 (Meshy, plan gratuito) |
-| Modelo 3D Maguey (`maguey.glb`) | Generado en Meshy AI por Carlos Gómez | CC BY 4.0 (Meshy, plan gratuito) |
-| Modelo 3D Tlayuda (`tlayuda.glb`) | Generado en Meshy AI por Carlos Gómez | CC BY 4.0 (Meshy, plan gratuito) |
+| Personaje base del Tiliche | [Kenney · Mini Characters](https://kenney.nl/assets/mini-characters) | CC0 1.0 |
+| Traje de Tiliche (retazos, sombrero, barba) | Carlos Antonio Gómez Morales, sobre la base de Kenney | CC0 / MIT |
+| Maguey (`plant_flatShort`) | [Kenney · Nature Kit](https://kenney.nl/assets/nature-kit) | CC0 1.0 |
+| Mazorca (`corn`) | [Kenney · Food Kit](https://kenney.nl/assets/food-kit) | CC0 1.0 |
 | Música y efectos | Sintetizados en código (`js/audio.js`), autoría propia | MIT |
 | MindAR | HiuKim Yuen | MIT |
 | three.js | three.js authors | MIT |
