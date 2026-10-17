@@ -193,7 +193,7 @@ function programarTramo(zPuerta) {
   if (indice >= TOTAL_PUERTAS) return;
   const nuevos = [
     crearObjeto('maguey', zPuerta + 0.75),
-    crearObjeto('tlayuda', zPuerta + 0.4),
+    crearObjeto('mazorca', zPuerta + 0.4),
     crearPuerta(e.bolsa[indice], zPuerta),
   ];
   for (const n of nuevos) {
@@ -288,7 +288,7 @@ function resolverPuerta(p) {
 
 function resolverObjeto(o) {
   if (o.carril !== estado.carril) return;
-  if (o.tipo === 'tlayuda') {
+  if (o.tipo === 'mazorca') {
     estado.puntos += 25;
     sfx('moneda');
     vibrar(15);
@@ -462,7 +462,7 @@ $('jugar').addEventListener('click', async () => {
   mundo.add(tiliche);
   if (modelos.tiliche.clips.length) {
     mixer = new THREE.AnimationMixer(tiliche);
-    const clip = modelos.tiliche.clips.find(c => /run|corr/i.test(c.name)) || modelos.tiliche.clips[0];
+    const clip = modelos.tiliche.clips.find(c => /sprint|run|corr/i.test(c.name)) || modelos.tiliche.clips[0];
     mixer.clipAction(clip).play();
   }
   if (DEMO) return iniciarDemo();

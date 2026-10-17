@@ -61,33 +61,32 @@ function magueyProcedural() {
   return g;
 }
 
-function tlayudaProcedural() {
+function mazorcaProcedural() {
   const g = new THREE.Group();
-  const tortilla = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.006, 24), mat(0xd8b46a));
-  const frijol = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.004, 24), mat(0x3b2216));
-  frijol.position.y = 0.005;
-  const quesillo = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.005, 6, 16), mat(0xfff6e0));
-  quesillo.rotation.x = Math.PI / 2;
-  quesillo.position.y = 0.009;
-  g.add(tortilla, frijol, quesillo);
-  g.position.y = 0.01;
-  const wrap = new THREE.Group();
-  wrap.add(g);
-  return wrap;
+  const grano = new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.04, 4, 8), mat(0xffc300));
+  grano.position.y = 0.035;
+  g.add(grano);
+  for (const s of [-1, 1]) {
+    const hoja = new THREE.Mesh(new THREE.ConeGeometry(0.01, 0.06, 4), mat(0x6b8e23));
+    hoja.position.set(s * 0.012, 0.03, 0);
+    hoja.rotation.z = s * 0.3;
+    g.add(hoja);
+  }
+  return g;
 }
 
 export async function cargarModelos() {
-  const [tiliche, maguey, tlayuda] = await Promise.all([
+  const [tiliche, maguey, mazorca] = await Promise.all([
     cargarGLB('assets/models/tiliche.glb'),
     cargarGLB('assets/models/maguey.glb'),
-    cargarGLB('assets/models/tlayuda.glb'),
+    cargarGLB('assets/models/mazorca.glb'),
   ]);
   return {
     tiliche: tiliche
       ? { objeto: normalizar(tiliche.scene, 0.24), clips: tiliche.animations }
       : { objeto: tilicheProcedural(), clips: [] },
-    // maguey y tlayuda se clonan para cada aparición
+    // maguey y mazorca se clonan para cada aparición
     maguey: maguey ? normalizar(maguey.scene, 0.12) : magueyProcedural(),
-    tlayuda: tlayuda ? normalizar(tlayuda.scene, 0.03) : tlayudaProcedural(),
+    mazorca: mazorca ? normalizar(mazorca.scene, 0.07) : mazorcaProcedural(),
   };
 }
