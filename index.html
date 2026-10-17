@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#121212">
+  <title>Atrapa al Intruso · Tiliche RA</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+        "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="ar"></div>
+
+  <!-- HUD durante la partida -->
+  <div id="hud" class="oculto">
+    <div class="barra">
+      <span id="vidas">❤❤❤</span>
+      <span id="puerta">Puerta 0/12</span>
+      <span id="puntos">0</span>
+    </div>
+    <div id="pista" class="oculto"></div>
+    <div id="aviso" class="oculto"></div>
+    <div class="controles">
+      <button id="izq" class="flecha" aria-label="Carril izquierdo">◀</button>
+      <div id="opciones">
+        <button class="opcion" data-carril="0"></button>
+        <button class="opcion" data-carril="1"></button>
+        <button class="opcion" data-carril="2"></button>
+      </div>
+      <button id="der" class="flecha" aria-label="Carril derecho">▶</button>
+    </div>
+  </div>
+
+  <div id="escaneo" class="oculto">
+    <div class="mira"></div>
+    <p>Apunta la cámara al marcador<br><small>"Atrapa al intruso"</small></p>
+  </div>
+
+  <div id="cuenta" class="oculto"></div>
+
+  <!-- Pantalla de inicio -->
+  <section id="inicio" class="pantalla">
+    <h1>ATRAPA AL <em>INTRUSO</em></h1>
+    <p class="sub">El Tiliche de Putla corre por Oaxaca. ¿Qué tanto sabes de tu tierra?</p>
+    <ol class="reglas">
+      <li><b>Objetivo:</b> atrapar al intruso en cada una de las 12 puertas.</li>
+      <li>En cada puerta hay 3 letreros: <b>2 son correctos y 1 es el intruso</b>. Lee la pista arriba.</li>
+      <li>Cambia de carril con ◀ ▶ o tocando la opción para que el Tiliche cruce por el intruso.</li>
+      <li>Acierto: +100 pts (combo x2, x3) y el Tiliche acelera. Error: pierdes un ❤.</li>
+      <li>Tlayuda: +25. Maguey: −30 y tropiezas.</li>
+      <li><b>Fin:</b> al cruzar las 12 puertas o al perder los 3 ❤.</li>
+    </ol>
+    <button id="jugar" class="btn">Jugar</button>
+    <p class="nota">Necesitas el marcador impreso o en otra pantalla.</p>
+  </section>
+
+  <!-- Pantalla final -->
+  <section id="final" class="pantalla oculto">
+    <h2 id="rango"></h2>
+    <p id="resumen"></p>
+    <p id="record"></p>
+    <button id="otra" class="btn">Jugar de nuevo</button>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
