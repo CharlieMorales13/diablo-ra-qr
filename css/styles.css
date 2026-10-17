@@ -44,7 +44,7 @@ html, body {
 .nota { font-size: .8rem; opacity: .7; }
 
 .btn {
-  font: 900 1.4rem/1 inherit;
+  font: 900 1.4rem/1 "Segoe UI", system-ui, Roboto, sans-serif;
   padding: 18px;
   border: 0;
   background: var(--naranja);
@@ -109,7 +109,7 @@ html, body {
   border: 3px solid var(--negro);
   background: var(--blanco);
   color: var(--negro);
-  font: 700 .78rem/1.15 inherit;
+  font: 700 .78rem/1.15 "Segoe UI", system-ui, Roboto, sans-serif;
   padding: 10px 6px;
   min-height: 64px;
   transition: transform .08s, background .15s;
