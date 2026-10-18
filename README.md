@@ -4,6 +4,8 @@ Minijuego de **realidad aumentada** para el teléfono que se activa con un **mar
 
 > Actividad 1 · Realidad Virtual y Aumentada · 2026
 
+**Pruébalo:** https://diablo-ra-qr.carlos-gomez-dev13.workers.dev/ · **Modo demo en PC:** https://diablo-ra-qr.carlos-gomez-dev13.workers.dev/?demo
+
 ![Juego en acción](docs/capturas/juego.png)
 
 ## Cómo se juega
@@ -50,7 +52,7 @@ marcador/             generador del marcador y compilador de MindAR
 
 1. Clona el repositorio:
    ```bash
-   git clone <url-del-repo> && cd 01-diablo-ra-qr
+   git clone https://github.com/CharlieMorales13/diablo-ra-qr.git && cd diablo-ra-qr
    ```
 2. Sirve la carpeta con cualquier servidor estático:
    ```bash
@@ -77,12 +79,12 @@ El QR del marcador apunta a la URL del juego. Después de publicar:
 
 ```bash
 pip install qrcode pillow opencv-python numpy
-python marcador/generar_marcador.py https://TU-URL marcador/marcador.png
+python marcador/generar_marcador.py https://diablo-ra-qr.carlos-gomez-dev13.workers.dev/ marcador/marcador.png
 ```
 
 El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guarda un mapa de puntos en `marcador_puntos.png`. Después abre `marcador/compilar.html` desde el servidor, toca **Usar marcador.png** y reemplaza `assets/targets.mind` con el archivo descargado.
 
-**Diseño del marcador:** un QR solo es repetitivo y confunde al rastreador. Por eso lleva un marco con una muesca naranja que rompe la simetría, grecas de Mitla (xicalcoliuhqui) distintas a cada lado, tipografía grande y esquirlas en una sola esquina. Resultado del análisis: unos 8,900 puntos ORB, simetría 0.50 y 98 % de cobertura, con más de la mitad de los puntos fuera del QR.
+**Diseño del marcador:** un QR solo es repetitivo y confunde al rastreador. Por eso lleva un marco con una muesca naranja que rompe la simetría, grecas de Mitla (xicalcoliuhqui) distintas a cada lado, tipografía grande y esquirlas en una sola esquina. Resultado del análisis con la URL publicada: 8,999 puntos ORB, simetría 0.48, 98 % de cobertura y 39 % de los puntos fuera del QR.
 
 ### Modelos 3D
 

@@ -16,7 +16,7 @@ Al apuntar el teléfono al marcador aparece un camino sobre el papel y el Diablo
 MindAR para el rastreo de imagen en el navegador, three.js para el 3D, Meshy AI para generar al Diablo con su rig y animación de correr, Blender para bajarlo de 18 MB a 1.5 MB sin romper el rig, modelos CC0 de Kenney para el maguey y la mazorca, Web Audio API para la música y los efectos (todo sintetizado en código) y Python con OpenCV para diseñar y analizar el marcador.
 
 🧩 **Retos**
-1. **El marcador.** Un QR solo es muy repetitivo y el rastreador se pierde. Le agregué un marco con muesca asimétrica, grecas de Mitla y tipografía grande, y lo medí con OpenCV hasta llegar a unos 8,900 puntos de rastreo con baja simetría.
+1. **El marcador.** Un QR solo es muy repetitivo y el rastreador se pierde. Le agregué un marco con muesca asimétrica, grecas de Mitla y tipografía grande, y lo medí con OpenCV hasta llegar a unos 9,000 puntos de rastreo con baja simetría.
 2. **Las preguntas.** Quería que fueran difíciles de verdad, para oaxaqueños: días de plaza, magueyes silvestres, la Tumba 7 de Monte Albán, el chichilo… Verifiqué cada dato antes de meterlo.
 3. **Legibilidad en RA.** Los letreros en 3D se ven pequeños en el teléfono, así que las opciones también aparecen como botones grandes alineados con los carriles.
 4. **Pausa inteligente.** Si se pierde el marcador, el juego se detiene en lugar de castigar al jugador.
@@ -25,7 +25,7 @@ MindAR para el rastreo de imagen en el navegador, three.js para el 3D, Meshy AI 
 Una experiencia web que se abre desde el navegador, sin instalar nada, con sonido, vibración y confeti en cada acierto. Fue la mejor excusa para aprender RA y, de paso, presumir un poco de Oaxaca.
 
 🎥 [video / GIF aquí]
-💻 Repositorio: https://github.com/TU-USUARIO/01-diablo-ra-qr
-🔗 Pruébalo: https://TU-URL
+💻 Repositorio: https://github.com/CharlieMorales13/diablo-ra-qr
+🔗 Pruébalo: https://diablo-ra-qr.carlos-gomez-dev13.workers.dev/
 
 #RealidadAumentada #WebAR #MindAR #threejs #Oaxaca #DesarrolloWeb #Gamificación
