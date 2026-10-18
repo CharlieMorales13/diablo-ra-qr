@@ -14,7 +14,7 @@ Minijuego de **realidad aumentada** para el teléfono que se activa con un **mar
 | **Reglas** | Cada puerta muestra una pista arriba y 3 opciones abajo. Cambia de carril con ◀ ▶ o tocando la opción. |
 | **Puntaje** | Acierto: +100 con combo x2 y x3, y el Diablo acelera. Mazorca: +25. Maguey: −30 y tropiezas. |
 | **Vidas** | 3 ❤. Cada intruso que se escapa cuesta una. |
-| **Fin** | Al cruzar las 12 puertas o al perder las 3 vidas. Se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
+| **Fin** | Al cruzar las 12 puertas o al perder las 3 vidas. El Diablo voltea hacia ti y baila, y se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
 | **Retroalimentación** | Los botones se encogen y suenan al tocarlos. Un acierto lanza confeti, un acorde y una vibración corta. Un error hace un destello rojo, un zumbido y una vibración doble. Si pierdes el marcador, el juego se pausa. |
 
 El banco tiene **41 preguntas para oaxaqueños**: regiones, los 7 moles, magueyes silvestres, días de plaza, pueblos artesanos, Monte Albán, Guelaguetza, calendas, el carnaval putleco y más. En cada partida salen 12 al azar y, después de cada puerta, aparece un dato curioso.
@@ -88,7 +88,7 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 
 | Modelo | Origen | Adaptación en Blender (`modelos/preparar_modelos.py`) | Peso |
 |---|---|---|---|
-| `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo la animación `Running`. De 18 MB a 1.5 MB. | 1.5 MB |
+| `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo las animaciones `Running` (al correr) y `All_Night_Dance` (pantalla final). De 18 MB a 1.6 MB. | 1.6 MB |
 | `maguey.glb` | *Nature Kit 2.1* de Kenney · `plant_flatShort` | Recoloreado en verde azulado de agave | 3 KB |
 | `mazorca.glb` | *Food Kit 2.0* de Kenney · `corn` | Textura incrustada en el GLB | 16 KB |
 
