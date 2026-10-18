@@ -11,7 +11,8 @@ CC BY 4.0) con su rig automático y animaciones ("Running", "Alert", ...).
 
 Genera en assets/models/ (texturas incrustadas):
     diablo.glb    el diablo reducido de ~211 k a ~20 k triángulos, texturas de
-                  1024 px y solo la animación "Running" que usa el juego.
+                  1024 px y solo las animaciones que usa el juego:
+                  "Running" al correr y "All_Night_Dance" en la pantalla final.
     maguey.glb    "plant_flatShort" del Nature Kit, en verde azulado de agave.
     mazorca.glb   "corn" del Food Kit.
 """
@@ -63,7 +64,7 @@ for img in bpy.data.images:
     if img.size[0] > 1024:
         img.scale(1024, 1024)
 for accion in list(bpy.data.actions):
-    if accion.name != "Running":
+    if accion.name not in ("Running", "All_Night_Dance"):
         bpy.data.actions.remove(accion)
 exportar("diablo.glb", animaciones=True)
 

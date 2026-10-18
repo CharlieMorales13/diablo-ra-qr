@@ -37,6 +37,8 @@ html, body {
   border: 14px solid var(--negro);
   overflow-y: auto;
 }
+/* la pantalla final es una tarjeta abajo: arriba se ve al Diablo bailando */
+#final { top: auto; justify-content: flex-end; padding-bottom: 20px; }
 .pantalla h1, .pantalla h2 { margin: 0 0 8px; font-size: clamp(2rem, 9vw, 3.2rem); font-weight: 900; line-height: 1; }
 .pantalla em { color: var(--naranja); }
 .sub { font-size: 1.05rem; margin: 0 0 12px; }

@@ -60,6 +60,8 @@ mundo.add(camino);
 let modelos = null;
 let diablo = null;
 let mixer = null;
+const acciones = {}; // correr y bailar
+let accionActual = null;
 let estado = null;
 let marcadorVisible = false;
 let arrancado = false;
@@ -204,10 +206,21 @@ function programarTramo(zPuerta) {
 }
 
 // ---------- flujo de partida ----------
+function animacion(nombre) { // transición suave entre correr y bailar
+  const nueva = acciones[nombre];
+  if (!nueva || nueva === accionActual) return;
+  accionActual?.fadeOut(0.4);
+  nueva.reset().fadeIn(0.4).play();
+  accionActual = nueva;
+}
+
 function iniciarPartida() {
   if (estado) for (const ent of estado.entidades) mundo.remove(ent.obj);
   estado = nuevoEstado();
   diablo.position.set(CARRILES[1], 0, Z_DIABLO);
+  diablo.rotation.y = Math.PI;
+  diablo.scale.setScalar(1);
+  animacion('correr');
   programarTramo(-1.3);
   actualizarHUD();
   ui.final.classList.add('oculto');
@@ -238,6 +251,14 @@ function terminar() {
   estado.jugando = false;
   stopMusic();
   sfx('fin');
+  if (acciones.bailar) { // el Diablo voltea hacia ti y baila
+    estado.bailando = true;
+    estado.carril = 1;
+    for (const ent of estado.entidades) ent.obj.visible = false; // despeja el camino
+    diablo.rotation.y = 0;
+    diablo.scale.setScalar(1.6);
+    animacion('bailar');
+  }
   ui.hud.classList.add('oculto');
   const a = estado.aciertos;
   const rango = a >= 10 ? 'Oaxaqueño de corazón' : a >= 7 ? 'Paisano' : a >= 4 ? 'Fuereño curioso' : 'Turista';
@@ -401,7 +422,7 @@ function actualizar(dt) {
   diablo.position.x += (CARRILES[e.carril] - diablo.position.x) * Math.min(1, dt * 10);
   e.tropiezo = Math.max(0, e.tropiezo - dt);
   diablo.rotation.z = e.tropiezo > 0 ? Math.sin(t * 40) * 0.3 : 0;
-  if (mixer) mixer.update(e.jugando ? dt * (e.velocidad / VELOCIDAD_BASE) : 0);
+  if (mixer) mixer.update(e.bailando ? dt : e.jugando ? dt * (e.velocidad / VELOCIDAD_BASE) : 0);
   else if (e.jugando) animarDiabloProcedural(t);
 
   if (!e.jugando) return;
@@ -461,8 +482,11 @@ $('jugar').addEventListener('click', async () => {
   mundo.add(diablo);
   if (modelos.diablo.clips.length) {
     mixer = new THREE.AnimationMixer(diablo);
-    const clip = modelos.diablo.clips.find(c => /sprint|run|corr/i.test(c.name)) || modelos.diablo.clips[0];
-    mixer.clipAction(clip).play();
+    const clips = modelos.diablo.clips;
+    acciones.correr = mixer.clipAction(clips.find(c => /sprint|run|corr/i.test(c.name)) || clips[0]);
+    const baile = clips.find(c => /dance|baile/i.test(c.name));
+    if (baile) acciones.bailar = mixer.clipAction(baile);
+    animacion('correr');
   }
   if (DEMO) return iniciarDemo();
   try {

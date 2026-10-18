@@ -11,6 +11,7 @@ function cargarGLB(url) {
 
 // Escala el modelo para que mida `alto` y lo apoya sobre el suelo (y = 0).
 function normalizar(obj, alto) {
+  obj.updateMatrixWorld(true); // con los huesos en su lugar, la caja de un personaje con rig sale bien
   const box = new THREE.Box3().setFromObject(obj);
   const size = box.getSize(new THREE.Vector3());
   const s = alto / (size.y || 1);
