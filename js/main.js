@@ -6,7 +6,7 @@ import { cargarModelos } from './modelos.js';
 
 // ---------- configuración ----------
 const CARRILES = [-0.22, 0, 0.22];
-const Z_TILICHE = 0.3;      // donde corre el Tiliche (lado cercano del marcador)
+const Z_DIABLO = 0.3;      // donde corre el Diablo (lado cercano del marcador)
 const Z_APARECE = -1.0;     // más lejos de esto los objetos no se ven
 const Z_SALIDA = 0.65;
 const TOTAL_PUERTAS = 12;
@@ -58,7 +58,7 @@ mundo.add(camino);
 
 // ---------- estado ----------
 let modelos = null;
-let tiliche = null;
+let diablo = null;
 let mixer = null;
 let estado = null;
 let marcadorVisible = false;
@@ -207,7 +207,7 @@ function programarTramo(zPuerta) {
 function iniciarPartida() {
   if (estado) for (const ent of estado.entidades) mundo.remove(ent.obj);
   estado = nuevoEstado();
-  tiliche.position.set(CARRILES[1], 0, Z_TILICHE);
+  diablo.position.set(CARRILES[1], 0, Z_DIABLO);
   programarTramo(-1.3);
   actualizarHUD();
   ui.final.classList.add('oculto');
@@ -243,8 +243,8 @@ function terminar() {
   const rango = a >= 10 ? 'Oaxaqueño de corazón' : a >= 7 ? 'Paisano' : a >= 4 ? 'Fuereño curioso' : 'Turista';
   let record = 0;
   try {
-    record = Math.max(estado.puntos, Number(localStorage.getItem('tiliche-record')) || 0);
-    localStorage.setItem('tiliche-record', record);
+    record = Math.max(estado.puntos, Number(localStorage.getItem('diablo-record')) || 0);
+    localStorage.setItem('diablo-record', record);
   } catch { record = estado.puntos; }
   ui.rango.textContent = rango;
   ui.resumen.textContent = `${a} de ${TOTAL_PUERTAS} intrusos atrapados · ${estado.puntos} puntos`;
@@ -365,7 +365,7 @@ function confeti(colorExtra) {
       new THREE.PlaneGeometry(0.012, 0.008),
       new THREE.MeshBasicMaterial({ color: colores[i % colores.length], side: THREE.DoubleSide }),
     );
-    p.position.copy(tiliche.position).add(new THREE.Vector3(0, 0.2, 0));
+    p.position.copy(diablo.position).add(new THREE.Vector3(0, 0.2, 0));
     p.userData.v = new THREE.Vector3((Math.random() - 0.5) * 0.6, Math.random() * 0.6 + 0.2, (Math.random() - 0.5) * 0.6);
     p.userData.vida = 1.2;
     mundo.add(p);
@@ -397,12 +397,12 @@ function actualizar(dt) {
   const e = estado;
   const t = reloj.elapsedTime;
 
-  // el Tiliche se desliza hacia su carril y tropieza si chocó
-  tiliche.position.x += (CARRILES[e.carril] - tiliche.position.x) * Math.min(1, dt * 10);
+  // el Diablo se desliza hacia su carril y tropieza si chocó
+  diablo.position.x += (CARRILES[e.carril] - diablo.position.x) * Math.min(1, dt * 10);
   e.tropiezo = Math.max(0, e.tropiezo - dt);
-  tiliche.rotation.z = e.tropiezo > 0 ? Math.sin(t * 40) * 0.3 : 0;
+  diablo.rotation.z = e.tropiezo > 0 ? Math.sin(t * 40) * 0.3 : 0;
   if (mixer) mixer.update(e.jugando ? dt * (e.velocidad / VELOCIDAD_BASE) : 0);
-  else if (e.jugando) animarTilicheProcedural(t);
+  else if (e.jugando) animarDiabloProcedural(t);
 
   if (!e.jugando) return;
   texCamino.offset.y += e.velocidad * dt * 1.2;
@@ -415,7 +415,7 @@ function actualizar(dt) {
       ent.mostrada = true;
       mostrarPregunta(ent);
     }
-    if (!ent.resuelta && ent.z >= Z_TILICHE) {
+    if (!ent.resuelta && ent.z >= Z_DIABLO) {
       ent.resuelta = true;
       if (ent.tipo === 'puerta') resolverPuerta(ent);
       else resolverObjeto(ent);
@@ -429,9 +429,8 @@ function actualizar(dt) {
   });
 }
 
-function animarTilicheProcedural(t) {
-  tiliche.children.forEach(c => (c.position.y = c.userData.y0 + Math.abs(Math.sin(t * 12)) * 0.015));
-  tiliche.userData.tiras?.forEach((tira, i) => (tira.rotation.x = Math.sin(t * 14 + i) * 0.5));
+function animarDiabloProcedural(t) {
+  diablo.children.forEach(c => (c.position.y = c.userData.y0 + Math.abs(Math.sin(t * 12)) * 0.015));
 }
 
 // ---------- arranque ----------
@@ -456,13 +455,13 @@ $('jugar').addEventListener('click', async () => {
   ui.inicio.classList.add('oculto');
   ui.escaneo.classList.remove('oculto');
   modelos = await cargarModelos();
-  tiliche = modelos.tiliche.objeto;
-  tiliche.rotation.y = Math.PI; // de espaldas a la cámara, corriendo hacia el fondo
-  tiliche.children.forEach(c => (c.userData.y0 = c.position.y));
-  mundo.add(tiliche);
-  if (modelos.tiliche.clips.length) {
-    mixer = new THREE.AnimationMixer(tiliche);
-    const clip = modelos.tiliche.clips.find(c => /sprint|run|corr/i.test(c.name)) || modelos.tiliche.clips[0];
+  diablo = modelos.diablo.objeto;
+  diablo.rotation.y = Math.PI; // de espaldas a la cámara, corriendo hacia el fondo
+  diablo.children.forEach(c => (c.userData.y0 = c.position.y));
+  mundo.add(diablo);
+  if (modelos.diablo.clips.length) {
+    mixer = new THREE.AnimationMixer(diablo);
+    const clip = modelos.diablo.clips.find(c => /sprint|run|corr/i.test(c.name)) || modelos.diablo.clips[0];
     mixer.clipAction(clip).play();
   }
   if (DEMO) return iniciarDemo();

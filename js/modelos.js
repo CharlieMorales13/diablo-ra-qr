@@ -24,28 +24,19 @@ function normalizar(obj, alto) {
 
 const mat = color => new THREE.MeshStandardMaterial({ color, roughness: 0.8 });
 
-function tilicheProcedural() {
+function diabloProcedural() {
   const g = new THREE.Group();
-  const colores = [0xff5a00, 0xffc300, 0x00a86b, 0xe6007e, 0x1e90ff, 0x8a2be2];
-  const tiras = [];
-  // traje de retazos: tiras de tela alrededor del cuerpo
-  for (let i = 0; i < 36; i++) {
-    const tira = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.07, 0.004), mat(colores[i % colores.length]));
-    const a = (i / 12) * Math.PI * 2;
-    const nivel = Math.floor(i / 12);
-    tira.position.set(Math.cos(a) * 0.035, 0.05 + nivel * 0.045, Math.sin(a) * 0.035);
-    tira.rotation.y = -a;
-    tiras.push(tira);
-    g.add(tira);
-  }
-  const cabeza = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 12), mat(0xd9c39a)); // máscara de estropajo
+  const cuerpo = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.1, 4, 12), mat(0x1a1a1a)); // traje negro
+  cuerpo.position.y = 0.09;
+  const cabeza = new THREE.Mesh(new THREE.SphereGeometry(0.032, 16, 12), mat(0xb3121e)); // máscara roja
   cabeza.position.y = 0.19;
-  const ala = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.005, 20), mat(0xc8a165)); // sombrero de palma
-  ala.position.y = 0.215;
-  const copa = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.04, 16), mat(0xc8a165));
-  copa.position.y = 0.235;
-  g.add(cabeza, ala, copa);
-  g.userData.tiras = tiras;
+  g.add(cuerpo, cabeza);
+  for (const s of [-1, 1]) {
+    const cuerno = new THREE.Mesh(new THREE.ConeGeometry(0.008, 0.045, 8), mat(0xf2e6c9));
+    cuerno.position.set(s * 0.02, 0.23, 0);
+    cuerno.rotation.z = -s * 0.4;
+    g.add(cuerno);
+  }
   return g;
 }
 
@@ -76,15 +67,15 @@ function mazorcaProcedural() {
 }
 
 export async function cargarModelos() {
-  const [tiliche, maguey, mazorca] = await Promise.all([
-    cargarGLB('assets/models/tiliche.glb'),
+  const [diablo, maguey, mazorca] = await Promise.all([
+    cargarGLB('assets/models/diablo.glb'),
     cargarGLB('assets/models/maguey.glb'),
     cargarGLB('assets/models/mazorca.glb'),
   ]);
   return {
-    tiliche: tiliche
-      ? { objeto: normalizar(tiliche.scene, 0.24), clips: tiliche.animations }
-      : { objeto: tilicheProcedural(), clips: [] },
+    diablo: diablo
+      ? { objeto: normalizar(diablo.scene, 0.24), clips: diablo.animations }
+      : { objeto: diabloProcedural(), clips: [] },
     // maguey y mazorca se clonan para cada aparición
     maguey: maguey ? normalizar(maguey.scene, 0.12) : magueyProcedural(),
     mazorca: mazorca ? normalizar(mazorca.scene, 0.07) : mazorcaProcedural(),
