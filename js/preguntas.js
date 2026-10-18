@@ -139,7 +139,7 @@ export const PREGUNTAS = [
   {
     pista: '¿Qué NO es tradición del Istmo?',
     opciones: ['Las velas', 'El traje de tehuana', 'La comparsa de Tiliches'], intruso: 2,
-    dato: '¡Como tú! Los Tiliches son del carnaval de Putla Villa de Guerrero.',
+    dato: 'Los Tiliches son del carnaval de Putla Villa de Guerrero.',
   },
   {
     pista: 'Los Tiliches: atrapa al intruso',
