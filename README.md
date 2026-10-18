@@ -8,6 +8,10 @@ Minijuego de **realidad aumentada** para el teléfono que se activa con un **mar
 
 ![Juego en acción](docs/capturas/juego.png)
 
+### Tamaño en pantalla
+
+Mientras la cámara ve el marcador, el juego se agranda según la distancia (`DISTANCIA_REF` en `js/main.js`) para ocupar casi toda la pantalla, así que no hace falta acercarse al papel. Los avisos van en una franja compacta arriba para no tapar el camino.
+
 ### ¿Mesa o pared?
 
 En el menú se elige dónde está el marcador. **Mesa o piso**: el camino se acuesta sobre el papel. **Pared**: el camino sale del muro hacia ti, inclinado 30° para que se vea de frente, como un portal. La inclinación se ajusta en `COLOCACION` de `js/main.js`.
@@ -16,11 +20,11 @@ En el menú se elige dónde está el marcador. **Mesa o piso**: el camino se acu
 
 | | |
 |---|---|
-| **Objetivo** | Atrapar al intruso en las 12 puertas, corriendo a toda velocidad como en un *endless runner*. |
+| **Objetivo** | Atrapar al intruso en las 12 puertas, corriendo a toda velocidad como en un *endless runner*. Cuando asoma una puerta, el camino hasta ella queda despejado para que solo pienses en la respuesta. |
 | **Inicio** | El Diablo espera de frente, en primer plano, con su animación de alerta. Al tocar **¡A correr!** se voltea, arranca y la vista pasa detrás de él (tercera persona). |
 | **Controles** | Desliza ← → o usa ◀ ▶ (o toca la opción) para cambiar de carril. Desliza ↑ o toca **SALTAR** para brincar. En PC: flechas y espacio. |
 | **Obstáculos** | Agaves en un carril (esquívalos o sáltalos: −30 si chocas) y cercas de carrizo que tapan los 3 carriles (solo se saltan: chocar cuesta un ❤). |
-| **Premios** | Mazorca +25. **Botella de mezcal**: +50 y 4 s de turbo, más rápido y atravesando los obstáculos. |
+| **Premios** | Bolsa de **Takis** +25. **Botella de mezcal**: +50 y 4 s de turbo, más rápido y atravesando los obstáculos. |
 | **Puntaje** | Acierto: +100 con combo x2 y x3, y el Diablo acelera. Cada puerta sube un poco la velocidad. |
 | **Dificultad** | **Media**, **Difícil** y **Muy difícil**: cambian la velocidad inicial (0.32, 0.42 y 0.54 marcadores por segundo), la aceleración, los obstáculos por tramo (2, 3 y 4), qué tan seguido sale la cerca y las vidas (3, 3 y 2). Hay récord por dificultad. |
 | **Tutorial** | La primera vez se juega un tutorial de 8 pasos que pausa la acción y explica cada cosa: mazorca, agave, salto, cerca y cómo cruzar por el intruso. Se puede repetir con el botón **Tutorial**. |
@@ -52,7 +56,7 @@ js/preguntas.js       banco de preguntas "atrapa al intruso"
 js/modelos.js         carga de GLB con respaldo procedural
 js/audio.js           música y efectos con Web Audio
 assets/targets.mind   marcador compilado para MindAR
-assets/models/        diablo.glb, maguey.glb (agave), mezcal.glb, mazorca.glb
+assets/models/        diablo.glb, maguey.glb (agave), mezcal.glb, takis.glb
 modelos/              script de Blender que prepara los modelos
 marcador/             generador del marcador y compilador de MindAR
 ```
@@ -102,15 +106,15 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 | `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo las animaciones `Alert` (de frente al inicio), `Running` (al correr) y `All_Night_Dance` (pantalla final). De 18 MB a 1.7 MB. | 1.7 MB |
 | `maguey.glb` | [Agave Americana](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6), escaneo de Discobolo | De 1 M triángulos y 48 MB a 16 k. Se le quita el cuadro de tierra del escaneo por color de textura (café contra verde) y altura. | 582 KB |
 | `mezcal.glb` | [Malaespina Mezcal bottle](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) de santibanezjuan | Malla a 4 k triángulos y texturas de 512 px | 305 KB |
-| `mazorca.glb` | *Food Kit 2.0* de Kenney · `corn` | Textura incrustada en el GLB | 16 KB |
+| `takis.glb` | [Takis Fuego - México](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) de Luiss Maker | Malla a 5 k triángulos y texturas de 512 px | 176 KB |
 
-Para regenerarlos, con el GLB de Meshy, el kit de Kenney y los GLB de Sketchfab descargados:
+Para regenerarlos, con el GLB de Meshy y los GLB de Sketchfab descargados en una carpeta:
 
 ```bash
-blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_kenney> <carpeta_sketchfab>
+blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_sketchfab>
 ```
 
-En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, mazorca 7 cm en la escala del marcador), la animación de correr se acelera con la velocidad del Diablo y, si faltara un GLB, se usa un respaldo procedural.
+En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, Takis 12 cm en la escala del marcador), la animación de correr se acelera con la velocidad del Diablo y, si faltara un GLB, se usa un respaldo procedural.
 
 ## Capturas
 
@@ -127,7 +131,7 @@ En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, 
 | Diablo de Juxtlahuaca (prompt propio, rig y animaciones) | Generado con [Meshy AI](https://www.meshy.ai), plan gratuito | CC BY 4.0 |
 | Agave (*Agave Americana*) | [Discobolo · Sketchfab](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6) | CC BY 4.0 |
 | Botella de mezcal (*Malaespina Mezcal bottle*) | [santibanezjuan · Sketchfab](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) | CC BY 4.0 |
-| Mazorca (`corn`) | [Kenney · Food Kit](https://kenney.nl/assets/food-kit) | CC0 1.0 |
+| Bolsa de Takis (*Takis Fuego - México*) | [Luiss Maker · Sketchfab](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) | CC BY 4.0 |
 | Música y efectos | Sintetizados en código (`js/audio.js`), autoría propia | MIT |
 | MindAR | HiuKim Yuen | MIT |
 | three.js | three.js authors | MIT |

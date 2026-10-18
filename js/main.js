@@ -13,7 +13,11 @@ const TOTAL_PUERTAS = 12;
 const SALTO = { alto: 0.13, duracion: 0.62 };
 const TURBO = { duracion: 4, factor: 1.6, puntos: 50 }; // botella de mezcal
 const PROB_MEZCAL = 0.3; // por tramo
-const ESCALA_INTRO = 1.6;   // de frente y de cerca antes de arrancar
+const ESCALA_INTRO = 1.6;
+// Mientras se ve el marcador, el juego se agranda según la distancia para
+// ocupar casi toda la pantalla: no hace falta acercarse al papel.
+const DISTANCIA_REF = 1.7; // en anchos de marcador; menor = juego más grande
+const ESCALA_MAX = 4;   // de frente y de cerca antes de arrancar
 const VELOCIDAD_ANIMACION = 0.32; // velocidad a la que la animación de correr se ve natural
 const DIFICULTADES = {
   media: { nombre: 'Media', velocidad: 0.32, aceleracion: 1.04, vidas: 3, obstaculos: 2, valla: 0.35 },
@@ -42,7 +46,7 @@ const PREGUNTA_TUTORIAL = {
 const TUTORIAL = [
   { texto: 'Él es el <b>Diablo de Juxtlahuaca</b>. Va a correr sobre tu marcador y tú lo guías.', boton: 'Siguiente' },
   { texto: 'Cuando estés listo toca <b>¡A correr!</b>: se voltea y la vista se pone detrás de él.', espera: 'arranque' },
-  { texto: 'Viene una <b>mazorca</b> que vale 25 puntos. Desliza a la izquierda o toca <b>◀</b> para ir por ella.', crear: { tipo: 'mazorca', carril: 0 }, cuando: 0.45, espera: 'carril', carril: 0 },
+  { texto: 'Vienen unos <b>Takis</b> que valen 25 puntos. Desliza a la izquierda o toca <b>◀</b> para ir por ellos.', crear: { tipo: 'takis', carril: 0 }, cuando: 0.45, espera: 'carril', carril: 0 },
   { texto: 'Un <b>maguey</b> en tu carril. Desliza hacia arriba o toca <b>SALTAR</b>.', crear: { tipo: 'maguey' }, cuando: 0.11, espera: 'salto' },
   { texto: 'La <b>cerca de carrizo</b> tapa los tres carriles: solo se puede saltar.', crear: { tipo: 'valla' }, cuando: 0.11, espera: 'salto' },
   { texto: 'Llega una <b>puerta</b>. Arriba está la pista y abajo las 3 opciones: dos son ciertas y una es el <b>intruso</b>.', crear: { tipo: 'puerta' }, cuando: 'visible', boton: 'Entendido' },
@@ -272,8 +276,11 @@ function agregar(ent) {
   return ent;
 }
 
-// Un tramo: magueys (con mazorcas de premio), a veces una cerca, y la puerta.
-// Se programa cuando la puerta anterior asoma en el horizonte.
+// Un tramo: agaves (con Takis de premio), a veces una cerca y un mezcal, y la
+// puerta. Antes de la puerta queda todo el camino visible despejado: cuando
+// asoma la pregunta ya no hay obstáculos y el jugador solo piensa en responder.
+const DESPEJE = Z_DIABLO - Z_APARECE;
+
 function programarTramo(zInicio) {
   const e = estado;
   const indice = e.puertasCruzadas + e.entidades.filter(x => x.tipo === 'puerta' && !x.resuelta).length;
@@ -281,7 +288,7 @@ function programarTramo(zInicio) {
   let z = zInicio;
   for (let i = 0; i < e.dif.obstaculos; i++) {
     agregar(crearObjeto('maguey', z));
-    if (Math.random() < 0.6) agregar(crearObjeto('mazorca', z - 0.2));
+    if (Math.random() < 0.6) agregar(crearObjeto('takis', z - 0.2));
     z -= 0.4;
   }
   if (Math.random() < e.dif.valla) {
@@ -292,7 +299,7 @@ function programarTramo(zInicio) {
     agregar(crearObjeto('mezcal', z + 0.15));
     z -= 0.15;
   }
-  agregar(crearPuerta(e.bolsa[indice], z - 0.1));
+  agregar(crearPuerta(e.bolsa[indice], z - DESPEJE));
 }
 
 // ---------- flujo de partida ----------
@@ -432,7 +439,7 @@ function resolverObjeto(o) {
     else perderVida('¡La cerca!', 'Las cercas de carrizo solo se pasan saltando.');
   } else if (o.carril !== e.carril) {
     return;
-  } else if (o.tipo === 'mazorca') {
+  } else if (o.tipo === 'takis') {
     e.puntos += 25;
     sfx('moneda');
     vibrar(15);
@@ -473,7 +480,7 @@ function mostrarAviso(bien, titulo, dato) {
   b.textContent = titulo;
   ui.aviso.append(b, dato);
   clearTimeout(avisoTimer);
-  avisoTimer = setTimeout(() => ui.aviso.classList.add('oculto'), 3500);
+  avisoTimer = setTimeout(() => ui.aviso.classList.add('oculto'), 2600);
 }
 
 function mostrarTarjeta(html, boton) {
@@ -719,7 +726,7 @@ function actualizar(dt) {
     ent.obj.visible = ent.z > Z_APARECE && !ent.tomada;
     if (ent.tipo === 'puerta' && !ent.vista && ent.z > Z_APARECE) {
       ent.vista = true;
-      if (!e.tutorial) programarTramo(ent.z - 0.6); // el siguiente tramo empieza detrás de esta puerta
+      if (!e.tutorial) programarTramo(ent.z - 0.5); // el siguiente tramo empieza detrás de esta puerta
     }
     if (!ent.resuelta && ent.z >= Z_DIABLO) {
       ent.resuelta = true;
@@ -812,9 +819,22 @@ async function empezar(tutorial) {
     return;
   }
   renderer.setAnimationLoop(() => {
-    actualizar(Math.min(reloj.getDelta(), 0.05));
+    const dt = Math.min(reloj.getDelta(), 0.05);
+    if (marcadorVisible) ajustarEscala(dt);
+    actualizar(dt);
     renderer.render(scene, camera);
   });
+}
+
+// La cámara de MindAR está en el origen: la distancia al marcador es la
+// posición del ancla; al dividir entre su escala queda en anchos de marcador.
+const posAncla = new THREE.Vector3();
+const escAncla = new THREE.Vector3();
+function ajustarEscala(dt) {
+  const m = anchor.group.matrixWorld;
+  const d = posAncla.setFromMatrixPosition(m).length() / escAncla.setFromMatrixScale(m).x;
+  const meta = THREE.MathUtils.clamp(d / DISTANCIA_REF, 1, ESCALA_MAX);
+  mundo.scale.setScalar(mundo.scale.x + (meta - mundo.scale.x) * Math.min(1, dt * 3));
 }
 
 $('jugar').addEventListener('click', () => empezar(!tutorialVisto()));

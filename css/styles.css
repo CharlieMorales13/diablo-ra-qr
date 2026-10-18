@@ -94,17 +94,21 @@ html, body {
   font-size: 1.05rem;
 }
 
+/* aviso compacto arriba, donde estaba la pista: no tapa el camino */
 #aviso {
   position: absolute;
-  top: 46%;
+  top: 52px;
   left: 16px;
   right: 16px;
-  padding: 14px;
+  padding: 8px 12px;
   text-align: center;
-  font-weight: 700;
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  border-radius: 4px;
   animation: entra .25s ease-out;
 }
-#aviso b { display: block; font-size: 1.5rem; font-weight: 900; }
+#aviso b { display: block; font-size: 1.05rem; font-weight: 900; }
 #aviso.bien { background: var(--verde); }
 #aviso.mal { background: var(--rojo); }
 

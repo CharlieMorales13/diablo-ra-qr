@@ -1,15 +1,14 @@
 """Prepara los 3 modelos del juego.
 
 Uso:
-    blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_kenney> <carpeta_sketchfab>
+    blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_sketchfab>
 
 <diablo_meshy.glb>: Diablo de Juxtlahuaca generado con Meshy AI (plan gratuito,
 CC BY 4.0) con su rig automático y animaciones ("Running", "Alert", ...).
-<carpeta_kenney>: kit CC0 de https://kenney.nl descomprimido:
-    kenney_food-kit/          (Food Kit 2.0)
 <carpeta_sketchfab>: GLB de Sketchfab con licencia CC BY 4.0:
     agave_americana.glb           "Agave Americana" de Discobolo
     malaespina_mezcal_bottle.glb  "Malaespina Mezcal bottle" de santibanezjuan
+    takis_fuego_-_mexico.glb      "Takis Fuego - México" de Luiss Maker
 
 Genera en assets/models/ (texturas incrustadas):
     diablo.glb    el diablo reducido de ~211 k a ~20 k triángulos, texturas de
@@ -18,7 +17,7 @@ Genera en assets/models/ (texturas incrustadas):
                   "All_Night_Dance" en la pantalla final.
     maguey.glb    agave escaneado (1 M triángulos, 48 MB) reducido para el teléfono.
     mezcal.glb    botella de mezcal reducida (turbo del Diablo).
-    mazorca.glb   "corn" del Food Kit.
+    takis.glb     bolsa de Takis Fuego reducida (premio de +25).
 """
 import os
 import sys
@@ -27,7 +26,7 @@ import bmesh
 import bpy
 import numpy as np
 
-DIABLO, KENNEY, SKETCHFAB = sys.argv[sys.argv.index("--") + 1:][:3]
+DIABLO, SKETCHFAB = sys.argv[sys.argv.index("--") + 1:][:2]
 AQUI = os.path.dirname(os.path.abspath(__file__))
 SALIDA = os.path.join(os.path.dirname(AQUI), "assets", "models")
 os.makedirs(SALIDA, exist_ok=True)
@@ -142,7 +141,5 @@ reducir_sketchfab("agave_americana.glb", 6000, "maguey.glb", quitar_suelo)
 # ---------------------------------------------------------------- mezcal (turbo)
 reducir_sketchfab("malaespina_mezcal_bottle.glb", 4000, "mezcal.glb")
 
-# ---------------------------------------------------------------- mazorca
-limpiar()
-importar(os.path.join(KENNEY, "kenney_food-kit", "Models", "GLB format", "corn.glb"))
-exportar("mazorca.glb")
+# ---------------------------------------------------------------- takis (premio)
+reducir_sketchfab("takis_fuego_-_mexico.glb", 5000, "takis.glb")

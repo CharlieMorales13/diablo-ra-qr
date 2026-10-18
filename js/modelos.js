@@ -53,17 +53,11 @@ function magueyProcedural() {
   return g;
 }
 
-function mazorcaProcedural() {
+function takisProcedural() {
+  const bolsa = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.11, 0.025), mat(0x5b2a86));
+  bolsa.position.y = 0.055;
   const g = new THREE.Group();
-  const grano = new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.04, 4, 8), mat(0xffc300));
-  grano.position.y = 0.035;
-  g.add(grano);
-  for (const s of [-1, 1]) {
-    const hoja = new THREE.Mesh(new THREE.ConeGeometry(0.01, 0.06, 4), mat(0x6b8e23));
-    hoja.position.set(s * 0.012, 0.03, 0);
-    hoja.rotation.z = s * 0.3;
-    g.add(hoja);
-  }
+  g.add(bolsa);
   return g;
 }
 
@@ -101,19 +95,19 @@ function vallaProcedural() {
 }
 
 export async function cargarModelos() {
-  const [diablo, maguey, mazorca, mezcal] = await Promise.all([
+  const [diablo, maguey, takis, mezcal] = await Promise.all([
     cargarGLB('assets/models/diablo.glb'),
     cargarGLB('assets/models/maguey.glb'),
-    cargarGLB('assets/models/mazorca.glb'),
+    cargarGLB('assets/models/takis.glb'),
     cargarGLB('assets/models/mezcal.glb'),
   ]);
   return {
     diablo: diablo
       ? { objeto: normalizar(diablo.scene, 0.24), clips: diablo.animations }
       : { objeto: diabloProcedural(), clips: [] },
-    // maguey y mazorca se clonan para cada aparición
+    // los obstáculos y premios se clonan para cada aparición
     maguey: maguey ? normalizar(maguey.scene, 0.11) : magueyProcedural(), // agave escaneado
-    mazorca: mazorca ? normalizar(mazorca.scene, 0.07) : mazorcaProcedural(),
+    takis: takis ? normalizar(takis.scene, 0.12) : takisProcedural(), // grandes para que se vean
     mezcal: mezcal ? normalizar(mezcal.scene, 0.08) : mezcalProcedural(),
     valla: vallaProcedural(),
   };
