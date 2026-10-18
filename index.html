@@ -28,6 +28,12 @@
     </div>
     <div id="pista" class="oculto"></div>
     <div id="aviso" class="oculto"></div>
+    <div id="tarjeta" class="oculto">
+      <p id="tarjeta-texto"></p>
+      <button id="tarjeta-boton" class="btn btn-chico oculto"></button>
+    </div>
+    <button id="correr" class="btn oculto">¡A correr!</button>
+    <button id="saltar" class="saltar" aria-label="Saltar">⤒<small>SALTAR</small></button>
     <div class="controles">
       <button id="izq" class="flecha" aria-label="Carril izquierdo">◀</button>
       <div id="opciones">
@@ -51,15 +57,28 @@
     <h1>ATRAPA AL <em>INTRUSO</em></h1>
     <p class="sub">El Diablo de Juxtlahuaca corre por Oaxaca. ¿Qué tanto sabes de tu tierra?</p>
     <ol class="reglas">
-      <li><b>Objetivo:</b> atrapar al intruso en cada una de las 12 puertas.</li>
-      <li>En cada puerta hay 3 letreros: <b>2 son correctos y 1 es el intruso</b>. Lee la pista arriba.</li>
-      <li>Cambia de carril con ◀ ▶ o tocando la opción para que el Diablo cruce por el intruso.</li>
-      <li>Acierto: +100 pts (combo x2, x3) y el Diablo acelera. Error: pierdes un ❤.</li>
-      <li>Mazorca: +25. Maguey: −30 y tropiezas.</li>
-      <li><b>Fin:</b> al cruzar las 12 puertas o al perder los 3 ❤.</li>
+      <li>En cada una de las 12 puertas hay 3 letreros: <b>2 son ciertos y 1 es el intruso</b>. Cruza por el intruso.</li>
+      <li><b>Desliza</b> ← → o usa ◀ ▶ para cambiar de carril, y desliza ↑ o toca <b>SALTAR</b> para brincar.</li>
+      <li>Mazorca +25 · agave −30 · las cercas de carrizo solo se saltan. Fallar una puerta o chocar con una cerca cuesta un ❤.</li>
+      <li><b>Mezcal:</b> +50 y turbo: unos segundos más rápido y atravesando todo.</li>
+      <li>Cada acierto suma 100 (combo x2, x3) y el Diablo corre más rápido.</li>
     </ol>
-    <button id="jugar" class="btn">Jugar</button>
-    <p class="nota">Toca <b>Jugar</b> y apunta la cámara al marcador impreso: el juego arranca solo en cuanto lo reconoce.</p>
+    <fieldset class="selector">
+      <legend>Dificultad</legend>
+      <label><input type="radio" name="dificultad" value="media"><span>Media</span></label>
+      <label><input type="radio" name="dificultad" value="dificil"><span>Difícil</span></label>
+      <label><input type="radio" name="dificultad" value="muy-dificil"><span>Muy difícil</span></label>
+    </fieldset>
+    <fieldset class="selector">
+      <legend>El marcador está en</legend>
+      <label><input type="radio" name="colocacion" value="mesa"><span>Mesa o piso</span></label>
+      <label><input type="radio" name="colocacion" value="pared"><span>Pared</span></label>
+    </fieldset>
+    <div class="botones">
+      <button id="jugar" class="btn">Jugar</button>
+      <button id="tutorial" class="btn btn-secundario">Tutorial</button>
+    </div>
+    <p class="nota">Apunta la cámara al marcador impreso. La primera vez empieza un tutorial corto.</p>
   </section>
 
   <!-- Pantalla final -->
@@ -67,7 +86,10 @@
     <h2 id="rango"></h2>
     <p id="resumen"></p>
     <p id="record"></p>
-    <button id="otra" class="btn">Jugar de nuevo</button>
+    <div class="botones">
+      <button id="otra" class="btn">Jugar de nuevo</button>
+      <button id="menu" class="btn btn-secundario">Cambiar dificultad</button>
+    </div>
   </section>
 
   <script type="module" src="js/main.js"></script>

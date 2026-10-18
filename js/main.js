@@ -6,19 +6,65 @@ import { cargarModelos } from './modelos.js';
 
 // ---------- configuración ----------
 const CARRILES = [-0.22, 0, 0.22];
-const Z_DIABLO = 0.3;      // donde corre el Diablo (lado cercano del marcador)
-const Z_APARECE = -1.0;     // más lejos de esto los objetos no se ven
+const Z_DIABLO = 0.3;       // donde corre el Diablo (lado cercano del marcador)
+const Z_APARECE = -1.7;     // horizonte: más lejos de esto los objetos no se ven
 const Z_SALIDA = 0.65;
 const TOTAL_PUERTAS = 12;
-const VIDAS = 3;
-const VELOCIDAD_BASE = 0.2; // unidades del marcador por segundo
+const SALTO = { alto: 0.13, duracion: 0.62 };
+const TURBO = { duracion: 4, factor: 1.6, puntos: 50 }; // botella de mezcal
+const PROB_MEZCAL = 0.3; // por tramo
+const ESCALA_INTRO = 1.6;   // de frente y de cerca antes de arrancar
+const VELOCIDAD_ANIMACION = 0.32; // velocidad a la que la animación de correr se ve natural
+const DIFICULTADES = {
+  media: { nombre: 'Media', velocidad: 0.32, aceleracion: 1.04, vidas: 3, obstaculos: 2, valla: 0.35 },
+  dificil: { nombre: 'Difícil', velocidad: 0.42, aceleracion: 1.05, vidas: 3, obstaculos: 3, valla: 0.6 },
+  'muy-dificil': { nombre: 'Muy difícil', velocidad: 0.54, aceleracion: 1.06, vidas: 2, obstaculos: 4, valla: 0.85 },
+};
+// Sobre una mesa el camino se acuesta en el papel. En la pared sale del muro
+// hacia ti, inclinado para que se vea desde enfrente (como un portal).
+const COLOCACION = {
+  mesa: { rotacion: Math.PI / 2, y: 0 },
+  pared: { rotacion: Math.PI / 6, y: -0.35 }, // ponytail: inclinación fija de 30°, se ajusta aquí
+};
 const DEMO = new URLSearchParams(location.search).has('demo');
+
+// ---------- tutorial ----------
+// Cada paso muestra una tarjeta. `crear` manda un objeto por el camino; cuando
+// llega a `cuando` (distancia al Diablo, o 'visible') el juego se pausa hasta
+// que el jugador hace la acción de `espera` o toca el botón.
+const VELOCIDAD_TUTORIAL = 0.25;
+const PREGUNTA_TUTORIAL = {
+  pista: 'Moles: ¿cuál es el intruso?',
+  opciones: ['Mole negro', 'Coloradito', 'Mole poblano'],
+  intruso: 2,
+  dato: 'El mole poblano es de Puebla. Oaxaca presume siete moles.',
+};
+const TUTORIAL = [
+  { texto: 'Él es el <b>Diablo de Juxtlahuaca</b>. Va a correr sobre tu marcador y tú lo guías.', boton: 'Siguiente' },
+  { texto: 'Cuando estés listo toca <b>¡A correr!</b>: se voltea y la vista se pone detrás de él.', espera: 'arranque' },
+  { texto: 'Viene una <b>mazorca</b> que vale 25 puntos. Desliza a la izquierda o toca <b>◀</b> para ir por ella.', crear: { tipo: 'mazorca', carril: 0 }, cuando: 0.45, espera: 'carril', carril: 0 },
+  { texto: 'Un <b>maguey</b> en tu carril. Desliza hacia arriba o toca <b>SALTAR</b>.', crear: { tipo: 'maguey' }, cuando: 0.11, espera: 'salto' },
+  { texto: 'La <b>cerca de carrizo</b> tapa los tres carriles: solo se puede saltar.', crear: { tipo: 'valla' }, cuando: 0.11, espera: 'salto' },
+  { texto: 'Llega una <b>puerta</b>. Arriba está la pista y abajo las 3 opciones: dos son ciertas y una es el <b>intruso</b>.', crear: { tipo: 'puerta' }, cuando: 'visible', boton: 'Entendido' },
+  { texto: 'Cruza por el intruso: toca su opción abajo o desliza hasta su carril.', mismo: true, cuando: 0.5, espera: 'carril', carril: 'intruso' },
+  { texto: '¡Muy bien! Cada acierto suma 100 puntos, sube el combo y acelera al Diablo. Ahora elige tu dificultad.', boton: 'Elegir dificultad', fin: true },
+];
+
+// ---------- ajustes guardados ----------
+function leer(clave, valor) { try { return localStorage.getItem(clave) ?? valor; } catch { return valor; } }
+function guardar(clave, valor) { try { localStorage.setItem(clave, valor); } catch { /* sin almacenamiento */ } }
+const ajustes = {
+  dificultad: DIFICULTADES[leer('diablo-dificultad')] ? leer('diablo-dificultad') : 'media',
+  colocacion: COLOCACION[leer('diablo-colocacion')] ? leer('diablo-colocacion') : 'mesa',
+};
 
 const $ = id => document.getElementById(id);
 const ui = {
   hud: $('hud'), vidas: $('vidas'), puerta: $('puerta'), puntos: $('puntos'),
   pista: $('pista'), aviso: $('aviso'), escaneo: $('escaneo'), cuenta: $('cuenta'),
   inicio: $('inicio'), final: $('final'), rango: $('rango'), resumen: $('resumen'), record: $('record'),
+  tarjeta: $('tarjeta'), tarjetaTexto: $('tarjeta-texto'), tarjetaBoton: $('tarjeta-boton'),
+  correr: $('correr'),
   opciones: [...document.querySelectorAll('.opcion')],
 };
 
@@ -40,50 +86,77 @@ sol.position.set(0.5, 1, 1);
 scene.add(sol);
 
 const anchor = mindar.addAnchor(0);
-// El marcador vive en el plano XY; giramos para trabajar con Y hacia arriba
-// y el camino corriendo por Z (lejos = -Z, cerca de la cámara = +Z).
+// El marcador vive en el plano XY. `mundo` trabaja con Y hacia arriba y el
+// camino corriendo por Z (lejos = -Z, cerca de la cámara = +Z).
 const mundo = new THREE.Group();
-mundo.rotation.x = Math.PI / 2;
 anchor.group.add(mundo);
+// `contenido` se escala alrededor del Diablo para la toma de frente del inicio.
+const contenido = new THREE.Group();
+mundo.add(contenido);
+
+function aplicarColocacion() {
+  const c = COLOCACION[ajustes.colocacion];
+  mundo.rotation.x = c.rotacion;
+  mundo.position.y = c.y;
+}
+
+function vista(escala) {
+  contenido.scale.setScalar(escala);
+  contenido.position.z = Z_DIABLO * (1 - escala);
+}
 
 // camino de tierra con líneas que se desplazan
 const texCamino = crearTexturaCamino();
 const camino = new THREE.Mesh(
-  new THREE.PlaneGeometry(0.72, 1.7),
+  new THREE.PlaneGeometry(0.72, 2.6),
   new THREE.MeshStandardMaterial({ map: texCamino, transparent: true, opacity: 0.95 }),
 );
 camino.rotation.x = -Math.PI / 2;
-camino.position.set(0, 0.001, -0.25);
-mundo.add(camino);
+camino.position.set(0, 0.001, -0.65);
+contenido.add(camino);
 
 // ---------- estado ----------
 let modelos = null;
 let diablo = null;
 let mixer = null;
-const acciones = {}; // correr y bailar
+const acciones = {}; // alerta, correr y bailar
 let accionActual = null;
 let estado = null;
 let marcadorVisible = false;
 let arrancado = false;
+let quiereTutorial = false;
+let camaraDemo = null;
 const particulas = [];
 const reloj = new THREE.Clock();
 
-function nuevoEstado() {
+function nuevoEstado(tutorial) {
+  const dif = DIFICULTADES[ajustes.dificultad];
   return {
-    jugando: false,
-    vidas: VIDAS,
+    fase: 'intro', // intro → transicion → jugando → fin
+    tutorial,
+    tut: null,
+    dif,
+    pausado: false,        // marcador fuera de cuadro
+    pausaTutorial: false,
+    vidas: dif.vidas,
     puntos: 0,
     combo: 1,
     aciertos: 0,
     puertasCruzadas: 0,
-    velocidad: VELOCIDAD_BASE,
+    velocidad: tutorial ? VELOCIDAD_TUTORIAL : dif.velocidad,
     carril: 1,
     tropiezo: 0,
+    salto: 0,
+    turbo: 0,
+    transicion: 0,
     entidades: [],
     bolsa: barajar([...PREGUNTAS]).slice(0, TOTAL_PUERTAS),
     puertaActual: null,
   };
 }
+
+const corriendo = () => estado?.fase === 'jugando' && !estado.pausado && !estado.pausaTutorial;
+const tutorialVisto = () => leer('diablo-tutorial') === '1';
 
 // ---------- utilidades ----------
 function barajar(arr) {
@@ -93,6 +166,8 @@ function barajar(arr) {
   }
   return arr;
 }
+
+const suave = t => t * t * (3 - 2 * t);
 
 function crearTexturaCamino() {
   const c = document.createElement('canvas');
@@ -111,7 +186,7 @@ function crearTexturaCamino() {
   g.fillRect(246, 0, 10, 512);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(1, 2);
+  t.repeat.set(1, 3);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
@@ -179,34 +254,49 @@ function crearPuerta(pregunta, z) {
     letrero.position.set(CARRILES[i], 0.11, 0);
     g.add(letrero);
   });
-  return { tipo: 'puerta', obj: g, z, pregunta, opciones, intruso, mostrada: false, resuelta: false };
+  return { tipo: 'puerta', obj: g, z, pregunta, opciones, intruso, resuelta: false };
 }
 
-function crearObjeto(tipo, z) {
+function crearObjeto(tipo, z, carril = Math.floor(Math.random() * 3)) {
   const obj = modelos[tipo].clone();
-  const carril = Math.floor(Math.random() * 3);
-  obj.position.x = CARRILES[carril];
+  if (tipo === 'valla') carril = null; // ocupa los tres carriles
+  else obj.position.x = CARRILES[carril];
   return { tipo, obj, z, carril, resuelta: false };
 }
 
-function programarTramo(zPuerta) {
+function agregar(ent) {
+  ent.obj.visible = false;
+  ent.obj.position.z = ent.z;
+  contenido.add(ent.obj);
+  estado.entidades.push(ent);
+  return ent;
+}
+
+// Un tramo: magueys (con mazorcas de premio), a veces una cerca, y la puerta.
+// Se programa cuando la puerta anterior asoma en el horizonte.
+function programarTramo(zInicio) {
   const e = estado;
   const indice = e.puertasCruzadas + e.entidades.filter(x => x.tipo === 'puerta' && !x.resuelta).length;
   if (indice >= TOTAL_PUERTAS) return;
-  const nuevos = [
-    crearObjeto('maguey', zPuerta + 0.75),
-    crearObjeto('mazorca', zPuerta + 0.4),
-    crearPuerta(e.bolsa[indice], zPuerta),
-  ];
-  for (const n of nuevos) {
-    n.obj.visible = false;
-    mundo.add(n.obj);
-    e.entidades.push(n);
+  let z = zInicio;
+  for (let i = 0; i < e.dif.obstaculos; i++) {
+    agregar(crearObjeto('maguey', z));
+    if (Math.random() < 0.6) agregar(crearObjeto('mazorca', z - 0.2));
+    z -= 0.4;
   }
+  if (Math.random() < e.dif.valla) {
+    agregar(crearObjeto('valla', z));
+    z -= 0.4;
+  }
+  if (Math.random() < PROB_MEZCAL) {
+    agregar(crearObjeto('mezcal', z + 0.15));
+    z -= 0.15;
+  }
+  agregar(crearPuerta(e.bolsa[indice], z - 0.1));
 }
 
 // ---------- flujo de partida ----------
-function animacion(nombre) { // transición suave entre correr y bailar
+function animacion(nombre) { // transición suave entre alerta, correr y bailar
   const nueva = acciones[nombre];
   if (!nueva || nueva === accionActual) return;
   accionActual?.fadeOut(0.4);
@@ -214,115 +304,158 @@ function animacion(nombre) { // transición suave entre correr y bailar
   accionActual = nueva;
 }
 
-function iniciarPartida() {
-  if (estado) for (const ent of estado.entidades) mundo.remove(ent.obj);
-  estado = nuevoEstado();
-  diablo.position.set(CARRILES[1], 0, Z_DIABLO);
-  diablo.rotation.y = Math.PI;
-  diablo.scale.setScalar(1);
-  animacion('correr');
-  programarTramo(-1.3);
-  actualizarHUD();
-  ui.final.classList.add('oculto');
-  ui.hud.classList.remove('oculto');
-  cuentaRegresiva(() => {
-    estado.jugando = true;
-    startMusic();
-  });
+function limpiarEntidades() {
+  document.body.classList.remove('turbo');
+  if (estado) for (const ent of estado.entidades) contenido.remove(ent.obj);
 }
 
-function cuentaRegresiva(listo) {
-  let n = 3;
+// El Diablo espera de frente, en primer plano, con su animación de alerta.
+function prepararSalida(tutorial) {
+  limpiarEntidades();
+  estado = nuevoEstado(tutorial);
+  diablo.position.set(CARRILES[1], 0, Z_DIABLO);
+  diablo.rotation.set(0, 0, 0);
+  diablo.scale.setScalar(1);
+  vista(ESCALA_INTRO);
+  animacion(acciones.alerta ? 'alerta' : 'correr');
+  ui.final.classList.add('oculto');
+  ui.hud.classList.remove('oculto');
+  ui.pista.classList.add('oculto');
+  ui.aviso.classList.add('oculto');
+  ui.opciones.forEach(b => (b.textContent = ''));
+  actualizarHUD();
+  if (camaraDemo) colocarCamaraDemo();
+  if (tutorial) entrarPaso(0);
+  else {
+    ui.correr.classList.remove('oculto');
+    mostrarTarjeta(`Dificultad <b>${estado.dif.nombre}</b>. Toca <b>¡A correr!</b> cuando estés listo.`);
+  }
+}
+
+// Al tocar ¡A correr!: se voltea, empieza a correr y la vista pasa detrás de él.
+function arrancar() {
+  const e = estado;
+  if (!e || e.fase !== 'intro' || e.pausado) return;
+  if (e.tutorial && TUTORIAL[e.tut.i].espera !== 'arranque') return;
+  e.fase = 'transicion';
+  ui.correr.classList.add('oculto');
+  ocultarTarjeta();
+  animacion('correr');
+  sfx('correcto');
+  vibrar(20);
+  tutorialAccion('arranque');
+}
+
+function empezarACorrer() {
+  const e = estado;
+  e.fase = 'jugando';
+  diablo.rotation.y = Math.PI;
+  vista(1);
+  ui.cuenta.textContent = '¡Corre!';
   ui.cuenta.classList.remove('oculto');
-  ui.cuenta.textContent = n;
-  sfx('click');
-  const t = setInterval(() => {
-    n--;
-    if (n > 0) { ui.cuenta.textContent = n; sfx('click'); return; }
-    clearInterval(t);
-    ui.cuenta.textContent = '¡Corre!';
-    sfx('correcto');
-    setTimeout(() => ui.cuenta.classList.add('oculto'), 600);
-    listo();
-  }, 800);
+  setTimeout(() => ui.cuenta.classList.add('oculto'), 700);
+  startMusic();
+  if (!e.tutorial) programarTramo(-1.0);
 }
 
 function terminar() {
-  estado.jugando = false;
+  const e = estado;
+  e.fase = 'fin';
+  document.body.classList.remove('turbo');
   stopMusic();
   sfx('fin');
   if (acciones.bailar) { // el Diablo voltea hacia ti y baila
-    estado.bailando = true;
-    estado.carril = 1;
-    for (const ent of estado.entidades) ent.obj.visible = false; // despeja el camino
+    e.carril = 1;
+    for (const ent of e.entidades) ent.obj.visible = false; // despeja el camino
     diablo.rotation.y = 0;
     diablo.scale.setScalar(1.6);
     animacion('bailar');
   }
   ui.hud.classList.add('oculto');
-  const a = estado.aciertos;
+  const a = e.aciertos;
   const rango = a >= 10 ? 'Oaxaqueño de corazón' : a >= 7 ? 'Paisano' : a >= 4 ? 'Fuereño curioso' : 'Turista';
-  let record = 0;
-  try {
-    record = Math.max(estado.puntos, Number(localStorage.getItem('diablo-record')) || 0);
-    localStorage.setItem('diablo-record', record);
-  } catch { record = estado.puntos; }
+  const clave = `diablo-record-${ajustes.dificultad}`;
+  const record = Math.max(e.puntos, Number(leer(clave)) || 0);
+  guardar(clave, record);
   ui.rango.textContent = rango;
-  ui.resumen.textContent = `${a} de ${TOTAL_PUERTAS} intrusos atrapados · ${estado.puntos} puntos`;
-  ui.record.textContent = `Récord en este teléfono: ${record}`;
+  ui.resumen.textContent = `${a} de ${TOTAL_PUERTAS} intrusos atrapados · ${e.puntos} puntos · ${e.dif.nombre}`;
+  ui.record.textContent = `Récord en ${e.dif.nombre.toLowerCase()}: ${record}`;
   ui.final.classList.remove('oculto');
+}
+
+function revisarFin() {
+  const e = estado;
+  if (e.tutorial || (e.vidas > 0 && e.puertasCruzadas < TOTAL_PUERTAS)) return;
+  e.fase = 'cerrando';
+  setTimeout(terminar, 1800);
+}
+
+function perderVida(titulo, dato) {
+  const e = estado;
+  if (!e.tutorial) e.vidas--;
+  e.combo = 1;
+  e.tropiezo = 0.6;
+  sfx('error');
+  vibrar([80, 40, 80]);
+  flashRojo();
+  mostrarAviso(false, titulo, dato);
 }
 
 function resolverPuerta(p) {
   const e = estado;
   e.puertasCruzadas++;
-  const bien = e.carril === p.intruso;
-  if (bien) {
+  e.velocidad *= 1.015; // cada puerta se corre un poco más rápido
+  if (e.carril === p.intruso) {
     e.aciertos++;
     e.puntos += 100 * e.combo;
     e.combo = Math.min(e.combo + 1, 3);
-    e.velocidad *= 1.06;
+    e.velocidad *= e.dif.aceleracion;
     sfx('correcto');
     vibrar(30);
     confeti(0xffc300);
     mostrarAviso(true, '¡Intruso atrapado!', p.pregunta.dato);
   } else {
-    e.vidas--;
-    e.combo = 1;
-    e.tropiezo = 0.6;
-    sfx('error');
-    vibrar([80, 40, 80]);
-    flashRojo();
-    mostrarAviso(false, `El intruso era: ${p.opciones[p.intruso]}`, p.pregunta.dato);
+    perderVida(`El intruso era: ${p.opciones[p.intruso]}`, p.pregunta.dato);
   }
   ui.pista.classList.add('oculto');
   ui.opciones.forEach(b => (b.textContent = ''));
   e.puertaActual = null;
   actualizarHUD();
-  if (e.vidas <= 0 || e.puertasCruzadas >= TOTAL_PUERTAS) {
-    e.jugando = false;
-    setTimeout(terminar, 1800);
-  } else {
-    programarTramo(-1.6);
-  }
+  revisarFin();
 }
 
 function resolverObjeto(o) {
-  if (o.carril !== estado.carril) return;
-  if (o.tipo === 'mazorca') {
-    estado.puntos += 25;
+  const e = estado;
+  const libre = e.salto > 0 || e.turbo > 0; // saltando o con turbo no choca
+  if (o.tipo === 'valla') {
+    if (libre) { e.puntos += 10; sfx('moneda'); }
+    else perderVida('¡La cerca!', 'Las cercas de carrizo solo se pasan saltando.');
+  } else if (o.carril !== e.carril) {
+    return;
+  } else if (o.tipo === 'mazorca') {
+    e.puntos += 25;
     sfx('moneda');
     vibrar(15);
     confeti(0xd8b46a);
     o.tomada = true;
-  } else {
-    estado.puntos = Math.max(0, estado.puntos - 30);
-    estado.tropiezo = 0.6;
+  } else if (o.tipo === 'mezcal') { // turbo: corre más rápido y atraviesa obstáculos
+    e.puntos += TURBO.puntos;
+    e.turbo = TURBO.duracion;
+    document.body.classList.add('turbo');
+    sfx('correcto');
+    vibrar([20, 30, 20]);
+    confeti(0xffffff);
+    mostrarAviso(true, '¡Mezcal! Turbo', `+${TURBO.puntos} y ${TURBO.duracion} s atravesando todo.`);
+    o.tomada = true;
+  } else if (!libre) { // maguey
+    e.puntos = Math.max(0, e.puntos - 30);
+    e.tropiezo = 0.6;
     sfx('golpe');
     vibrar(120);
     flashRojo();
   }
   actualizarHUD();
+  revisarFin();
 }
 
 function mostrarPregunta(p) {
@@ -343,6 +476,15 @@ function mostrarAviso(bien, titulo, dato) {
   avisoTimer = setTimeout(() => ui.aviso.classList.add('oculto'), 3500);
 }
 
+function mostrarTarjeta(html, boton) {
+  ui.tarjetaTexto.innerHTML = html; // textos fijos del juego, no del usuario
+  ui.tarjetaBoton.textContent = boton ?? '';
+  ui.tarjetaBoton.classList.toggle('oculto', !boton);
+  ui.tarjeta.classList.remove('oculto');
+}
+
+function ocultarTarjeta() { ui.tarjeta.classList.add('oculto'); }
+
 function flashRojo() {
   document.body.classList.remove('flash-rojo');
   void document.body.offsetWidth; // reinicia la animación CSS
@@ -350,19 +492,114 @@ function flashRojo() {
 }
 
 function actualizarHUD() {
-  ui.vidas.textContent = '❤'.repeat(estado.vidas) + '♡'.repeat(VIDAS - estado.vidas);
-  ui.puerta.textContent = `Puerta ${Math.min(estado.puertasCruzadas + 1, TOTAL_PUERTAS)}/${TOTAL_PUERTAS}`;
-  ui.puntos.textContent = estado.puntos + (estado.combo > 1 ? ` x${estado.combo}` : '');
-  ui.opciones.forEach((b, i) => b.classList.toggle('activa', i === estado.carril));
+  const e = estado;
+  ui.vidas.textContent = '❤'.repeat(Math.max(0, e.vidas)) + '♡'.repeat(Math.max(0, e.dif.vidas - e.vidas));
+  ui.puerta.textContent = e.tutorial ? 'Tutorial' : `Puerta ${Math.min(e.puertasCruzadas + 1, TOTAL_PUERTAS)}/${TOTAL_PUERTAS}`;
+  ui.puntos.textContent = e.puntos + (e.combo > 1 ? ` x${e.combo}` : '');
+  ui.opciones.forEach((b, i) => b.classList.toggle('activa', i === e.carril));
 }
 
+// ---------- tutorial ----------
+function entrarPaso(i) {
+  const e = estado;
+  const p = TUTORIAL[i];
+  e.tut = { i, ent: p.mismo ? e.tut.ent : null, pausado: false, listo: false };
+  if (p.crear) {
+    const { tipo, carril = e.carril } = p.crear;
+    e.tut.ent = agregar(tipo === 'puerta' ? crearPuerta(PREGUNTA_TUTORIAL, -1.9) : crearObjeto(tipo, -1.2, carril));
+  }
+  if (p.crear || p.mismo) ocultarTarjeta(); // la tarjeta sale cuando el objeto llega
+  else mostrarTarjeta(p.texto, p.boton);
+  ui.correr.classList.toggle('oculto', p.espera !== 'arranque');
+}
+
+function revisarPausaTutorial() {
+  const e = estado;
+  const tut = e.tut;
+  const p = TUTORIAL[tut.i];
+  if (!tut.ent || tut.pausado || tut.listo || !p.cuando) return;
+  const llego = p.cuando === 'visible' ? tut.ent.z > Z_APARECE : tut.ent.z >= Z_DIABLO - p.cuando;
+  if (!llego) return;
+  tut.pausado = true;
+  e.pausaTutorial = true;
+  mostrarTarjeta(p.texto, p.boton);
+  if (p.espera === 'carril' && e.carril === metaCarril(p)) programarTutorial(1.5, () => tutorialAccion('carril')); // ya estaba ahí
+}
+
+function programarTutorial(segundos, fn) {
+  estado.tut.reloj = segundos;
+  estado.tut.alVencer = fn;
+}
+
+const metaCarril = p => (p.carril === 'intruso' ? estado.tut.ent.intruso : p.carril);
+
+function tutorialAccion(tipo) {
+  const e = estado;
+  if (!e?.tutorial || !e.tut || e.tut.listo) return;
+  const p = TUTORIAL[e.tut.i];
+  if (p.espera !== tipo) return;
+  if (tipo !== 'arranque' && !e.tut.pausado) return; // cuenta cuando ya se explicó
+  if (tipo === 'carril' && e.carril !== metaCarril(p)) return;
+  completarPaso();
+}
+
+function completarPaso() {
+  const e = estado;
+  e.tut.listo = true;
+  e.pausaTutorial = false;
+  ocultarTarjeta();
+  // sin objeto en camino, o si el siguiente paso usa el mismo, avanza ya;
+  // si no, avanza cuando el objeto pase junto al Diablo
+  if (!e.tut.ent || TUTORIAL[e.tut.i + 1]?.mismo) siguientePaso();
+}
+
+function siguientePaso() {
+  entrarPaso(estado.tut.i + 1);
+}
+
+function terminarTutorial() {
+  guardar('diablo-tutorial', '1');
+  stopMusic();
+  limpiarEntidades();
+  estado = null;
+  ui.hud.classList.add('oculto');
+  abrirMenu();
+}
+
+ui.tarjetaBoton.addEventListener('click', () => {
+  const e = estado;
+  if (!e?.tutorial) return;
+  sfx('click');
+  const p = TUTORIAL[e.tut.i];
+  if (p.fin) return terminarTutorial();
+  if (e.tut.ent && !e.tut.pausado) return;
+  completarPaso();
+});
+
 // ---------- controles táctiles ----------
+function puedeMoverse() {
+  return corriendo() || (estado?.pausaTutorial && TUTORIAL[estado.tut.i].espera === 'carril');
+}
+
 function moverA(carril) {
-  if (!estado?.jugando) return;
-  estado.carril = Math.max(0, Math.min(2, carril));
+  if (!puedeMoverse()) return;
+  const nuevo = Math.max(0, Math.min(2, carril));
+  if (nuevo === estado.carril) return;
+  estado.carril = nuevo;
   sfx('click');
   vibrar(10);
   actualizarHUD();
+  tutorialAccion('carril');
+}
+
+function saltar() {
+  const e = estado;
+  const esperandoSalto = e?.pausaTutorial && TUTORIAL[e.tut.i].espera === 'salto';
+  if (!e || e.salto > 0 || !(corriendo() || esperandoSalto)) return;
+  tutorialAccion('salto'); // primero reanuda, luego salta
+  e.salto = SALTO.duracion;
+  sfx('salto');
+  vibrar(15);
 }
 
 function pulsar(btn) {
@@ -372,10 +609,29 @@ function pulsar(btn) {
 
 $('izq').addEventListener('pointerdown', e => { pulsar(e.currentTarget); moverA(estado.carril - 1); });
 $('der').addEventListener('pointerdown', e => { pulsar(e.currentTarget); moverA(estado.carril + 1); });
+$('saltar').addEventListener('pointerdown', e => { pulsar(e.currentTarget); saltar(); });
+ui.correr.addEventListener('click', arrancar);
 ui.opciones.forEach(b => b.addEventListener('pointerdown', () => { pulsar(b); moverA(Number(b.dataset.carril)); }));
 window.addEventListener('keydown', e => {
+  if (!estado) return;
   if (e.key === 'ArrowLeft') moverA(estado.carril - 1);
   if (e.key === 'ArrowRight') moverA(estado.carril + 1);
+  if (e.key === 'ArrowUp' || e.key === ' ') saltar();
+});
+
+// deslizar el dedo sobre la cámara: ← → cambia de carril, ↑ salta
+let toque = null;
+window.addEventListener('pointerdown', e => {
+  toque = e.target.closest('button, .pantalla, #tarjeta') ? null : { x: e.clientX, y: e.clientY };
+});
+window.addEventListener('pointerup', e => {
+  if (!toque || !estado) return;
+  const dx = e.clientX - toque.x;
+  const dy = e.clientY - toque.y;
+  toque = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 35) return;
+  if (Math.abs(dx) > Math.abs(dy)) moverA(estado.carril + Math.sign(dx));
+  else if (dy < 0) saltar();
 });
 
 // ---------- partículas ----------
@@ -389,7 +645,7 @@ function confeti(colorExtra) {
     p.position.copy(diablo.position).add(new THREE.Vector3(0, 0.2, 0));
     p.userData.v = new THREE.Vector3((Math.random() - 0.5) * 0.6, Math.random() * 0.6 + 0.2, (Math.random() - 0.5) * 0.6);
     p.userData.vida = 1.2;
-    mundo.add(p);
+    contenido.add(p);
     particulas.push(p);
   }
 }
@@ -403,7 +659,7 @@ function actualizarParticulas(dt) {
     p.rotation.y += 5 * dt;
     p.userData.vida -= dt;
     if (p.userData.vida <= 0) {
-      mundo.remove(p);
+      contenido.remove(p);
       p.geometry.dispose();
       p.material.dispose();
       particulas.splice(i, 1);
@@ -412,40 +668,76 @@ function actualizarParticulas(dt) {
 }
 
 // ---------- bucle ----------
+const velocidadReal = e => e.velocidad * (e.turbo > 0 ? TURBO.factor : 1);
+
+function velocidadAnimacion(e) {
+  if (e.fase !== 'jugando' && e.fase !== 'cerrando') return 1;
+  if (e.pausado) return 0;
+  if (e.pausaTutorial) return 0.15; // cámara lenta mientras se explica
+  return Math.min(2.5, velocidadReal(e) / VELOCIDAD_ANIMACION);
+}
+
 function actualizar(dt) {
   actualizarParticulas(dt);
   if (!estado) return;
   const e = estado;
   const t = reloj.elapsedTime;
 
-  // el Diablo se desliza hacia su carril y tropieza si chocó
-  diablo.position.x += (CARRILES[e.carril] - diablo.position.x) * Math.min(1, dt * 10);
+  if (e.fase === 'transicion') {
+    e.transicion = Math.min(1, e.transicion + dt / 1.1);
+    const k = suave(e.transicion);
+    diablo.rotation.y = Math.PI * k;
+    vista(ESCALA_INTRO + (1 - ESCALA_INTRO) * k);
+    if (e.transicion === 1) empezarACorrer();
+  }
+
+  // se desliza hacia su carril, salta en arco y tropieza si chocó
+  diablo.position.x += (CARRILES[e.carril] - diablo.position.x) * Math.min(1, dt * 12);
   e.tropiezo = Math.max(0, e.tropiezo - dt);
   diablo.rotation.z = e.tropiezo > 0 ? Math.sin(t * 40) * 0.3 : 0;
-  if (mixer) mixer.update(e.bailando ? dt : e.jugando ? dt * (e.velocidad / VELOCIDAD_BASE) : 0);
-  else if (e.jugando) animarDiabloProcedural(t);
+  if (corriendo() && e.salto > 0) e.salto = Math.max(0, e.salto - dt);
+  if (corriendo() && e.turbo > 0) {
+    e.turbo = Math.max(0, e.turbo - dt);
+    if (e.turbo === 0) document.body.classList.remove('turbo');
+  }
+  // relojes del tutorial en tiempo de juego (no en tiempo real)
+  if (e.tut?.reloj > 0) {
+    e.tut.reloj -= dt;
+    if (e.tut.reloj <= 0) e.tut.alVencer();
+  }
+  diablo.position.y = e.salto > 0 ? SALTO.alto * Math.sin(Math.PI * (1 - e.salto / SALTO.duracion)) : 0;
+  if (mixer) mixer.update(dt * velocidadAnimacion(e));
+  else if (corriendo()) animarDiabloProcedural(t);
 
-  if (!e.jugando) return;
-  texCamino.offset.y += e.velocidad * dt * 1.2;
+  if (!corriendo()) return;
+  const v = velocidadReal(e);
+  texCamino.offset.y += v * dt * 1.2;
 
   for (const ent of e.entidades) {
-    ent.z += e.velocidad * dt;
+    ent.z += v * dt;
     ent.obj.position.z = ent.z;
     ent.obj.visible = ent.z > Z_APARECE && !ent.tomada;
-    if (ent.tipo === 'puerta' && !ent.mostrada && ent.z > Z_APARECE) {
-      ent.mostrada = true;
-      mostrarPregunta(ent);
+    if (ent.tipo === 'puerta' && !ent.vista && ent.z > Z_APARECE) {
+      ent.vista = true;
+      if (!e.tutorial) programarTramo(ent.z - 0.6); // el siguiente tramo empieza detrás de esta puerta
     }
     if (!ent.resuelta && ent.z >= Z_DIABLO) {
       ent.resuelta = true;
       if (ent.tipo === 'puerta') resolverPuerta(ent);
       else resolverObjeto(ent);
+      if (e.tutorial && ent === e.tut.ent && e.tut.listo) programarTutorial(0.9, siguientePaso);
     }
   }
+  // la pregunta en pantalla es la de la puerta más cercana que ya se ve
+  if (!e.puertaActual) {
+    const p = e.entidades.find(x => x.tipo === 'puerta' && !x.resuelta && x.vista);
+    if (p) mostrarPregunta(p);
+  }
+  if (e.tutorial) revisarPausaTutorial();
   // limpia lo que ya pasó
   e.entidades = e.entidades.filter(ent => {
     if (ent.z < Z_SALIDA) return true;
-    mundo.remove(ent.obj);
+    contenido.remove(ent.obj);
     return false;
   });
 }
@@ -454,39 +746,62 @@ function animarDiabloProcedural(t) {
   diablo.children.forEach(c => (c.position.y = c.userData.y0 + Math.abs(Math.sin(t * 12)) * 0.015));
 }
 
+// ---------- menú: dificultad y colocación ----------
+for (const input of document.querySelectorAll('.selector input')) {
+  input.checked = ajustes[input.name] === input.value;
+  input.addEventListener('change', () => {
+    ajustes[input.name] = input.value;
+    guardar(`diablo-${input.name}`, input.value);
+    sfx('click');
+  });
+}
+
+function abrirMenu() {
+  ui.final.classList.add('oculto');
+  ui.inicio.classList.remove('oculto');
+  $('jugar').textContent = 'Jugar';
+}
+
 // ---------- arranque ----------
 anchor.onTargetFound = () => {
   marcadorVisible = true;
   ui.escaneo.classList.add('oculto');
-  if (!arrancado) { arrancado = true; iniciarPartida(); }
-  else if (estado && estado.vidas > 0 && estado.puertasCruzadas < TOTAL_PUERTAS && estado.pausado) {
-    estado.pausado = false;
-    estado.jugando = true;
-  }
+  if (!estado && ui.inicio.classList.contains('oculto')) prepararSalida(quiereTutorial);
+  else if (estado?.pausado) estado.pausado = false;
 };
 anchor.onTargetLost = () => {
   marcadorVisible = false;
   ui.escaneo.classList.remove('oculto');
-  if (estado?.jugando) { estado.jugando = false; estado.pausado = true; } // pausa hasta volver a ver el marcador
+  if (estado) estado.pausado = true; // pausa hasta volver a ver el marcador
 };
 
-$('jugar').addEventListener('click', async () => {
+async function empezar(tutorial) {
   initAudio();
   sfx('click');
+  aplicarColocacion();
   ui.inicio.classList.add('oculto');
+  quiereTutorial = tutorial;
+  limpiarEntidades();
+  estado = null;
+  if (arrancado) { // la cámara ya está abierta
+    if (marcadorVisible) prepararSalida(tutorial);
+    else ui.escaneo.classList.remove('oculto');
+    return;
+  }
+  arrancado = true;
   ui.escaneo.classList.remove('oculto');
   modelos = await cargarModelos();
   diablo = modelos.diablo.objeto;
-  diablo.rotation.y = Math.PI; // de espaldas a la cámara, corriendo hacia el fondo
   diablo.children.forEach(c => (c.userData.y0 = c.position.y));
-  mundo.add(diablo);
+  contenido.add(diablo);
   if (modelos.diablo.clips.length) {
     mixer = new THREE.AnimationMixer(diablo);
     const clips = modelos.diablo.clips;
     acciones.correr = mixer.clipAction(clips.find(c => /sprint|run|corr/i.test(c.name)) || clips[0]);
+    const alerta = clips.find(c => /alert/i.test(c.name));
+    if (alerta) acciones.alerta = mixer.clipAction(alerta);
     const baile = clips.find(c => /dance|baile/i.test(c.name));
     if (baile) acciones.bailar = mixer.clipAction(baile);
-    animacion('correr');
   }
   if (DEMO) return iniciarDemo();
   try {
@@ -500,18 +815,44 @@ $('jugar').addEventListener('click', async () => {
     actualizar(Math.min(reloj.getDelta(), 0.05));
     renderer.render(scene, camera);
   });
+}
+
+$('jugar').addEventListener('click', () => empezar(!tutorialVisto()));
+$('tutorial').addEventListener('click', () => empezar(true));
+$('otra').addEventListener('click', () => {
+  sfx('click');
+  if (marcadorVisible) prepararSalida(false);
+  else { ui.final.classList.add('oculto'); limpiarEntidades(); estado = null; quiereTutorial = false; ui.escaneo.classList.remove('oculto'); }
+});
+$('menu').addEventListener('click', () => {
+  sfx('click');
+  stopMusic();
+  limpiarEntidades();
+  estado = null;
+  abrirMenu();
 });
 
 // Modo demo (?demo): sin cámara, con el marcador dibujado en pantalla.
 // Sirve para probar en la computadora y tomar capturas.
+function colocarCamaraDemo() {
+  if (ajustes.colocacion === 'pared') { // de pie frente al muro
+    camaraDemo.up.set(0, 1, 0);
+    camaraDemo.position.set(0, 0.15, 3.0);
+    camaraDemo.lookAt(0, -0.3, 0);
+  } else { // mirando la mesa desde el borde inferior del marcador
+    camaraDemo.up.set(0, 0, 1);
+    camaraDemo.position.set(0, -1.25, 1.1);
+    camaraDemo.lookAt(0, -0.1, 0);
+  }
+}
+
 function iniciarDemo() {
-  const cam = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.01, 20);
-  cam.up.set(0, 0, 1);
-  cam.position.set(0, -1.25, 1.1);
-  cam.lookAt(0, -0.1, 0);
+  camaraDemo = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.01, 20);
+  colocarCamaraDemo();
   const tex = new THREE.TextureLoader().load('marcador/marcador.png');
   tex.colorSpace = THREE.SRGBColorSpace;
-  anchor.group.add(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex })));
+  // sin depthWrite: como en la cámara real, el papel no tapa lo que está "detrás" del muro
+  anchor.group.add(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, depthWrite: false })));
   anchor.group.visible = true;
   scene.background = new THREE.Color(0x2b2b2b);
   if (!renderer.domElement.isConnected) $('ar').appendChild(renderer.domElement);
@@ -519,14 +860,9 @@ function iniciarDemo() {
   anchor.onTargetFound();
   renderer.setAnimationLoop(() => {
     actualizar(Math.min(reloj.getDelta(), 0.05));
-    renderer.render(scene, cam);
+    renderer.render(scene, camaraDemo);
   });
-  // adelanta la simulación N segundos (pruebas automáticas)
+  // pruebas automáticas: adelanta la simulación N segundos
   window.avanzar = seg => { for (let i = 0; i < seg * 30; i++) actualizar(1 / 30); };
+  window.juego = () => estado;
 }
-
-$('otra').addEventListener('click', () => {
-  sfx('click');
-  if (marcadorVisible) iniciarPartida();
-  else { ui.final.classList.add('oculto'); arrancado = false; ui.escaneo.classList.remove('oculto'); }
-});

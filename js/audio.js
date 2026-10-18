@@ -41,6 +41,7 @@ const SFX = {
   click: t => tone(880, t, 0.06, { vol: 0.08 }),
   correcto: t => [523, 659, 784, 1047].forEach((f, i) => tone(f, t + i * 0.07, 0.18, { type: 'triangle', vol: 0.2 })),
   error: t => { tone(180, t, 0.35, { type: 'sawtooth', vol: 0.18, slide: 0.5 }); noise(t, 0.15, 0.1); },
+  salto: t => tone(330, t, 0.16, { type: 'square', vol: 0.1, slide: 2 }),
   moneda: t => { tone(988, t, 0.08, { vol: 0.12 }); tone(1319, t + 0.08, 0.2, { vol: 0.12 }); },
   golpe: t => { noise(t, 0.2, 0.3); tone(110, t, 0.2, { type: 'sine', vol: 0.3, slide: 0.5 }); },
   fin: t => [784, 659, 523, 392].forEach((f, i) => tone(f, t + i * 0.18, 0.3, { type: 'triangle', vol: 0.2 })),
