@@ -97,7 +97,7 @@ html, body {
 /* aviso compacto arriba, donde estaba la pista: no tapa el camino */
 #aviso {
   position: absolute;
-  top: 52px;
+  top: 72px;
   left: 16px;
   right: 16px;
   padding: 8px 12px;
@@ -190,3 +190,9 @@ body.flash-rojo #ar { animation: flash .35s; }
 /* turbo de mezcal: borde de fuego y el puntaje encendido */
 body.turbo #hud { box-shadow: inset 0 0 0 6px var(--naranja), inset 0 0 40px rgba(255, 90, 0, .6); }
 body.turbo #puntos { color: var(--amarillo); }
+
+/* avance de la Sierra Norte a la Guelaguetza */
+.recorrido { display: flex; align-items: center; gap: 8px; margin: -4px 16px 4px; font-size: .68rem; font-weight: 800; text-transform: uppercase; text-shadow: 0 1px 3px #000; }
+.recorrido div { flex: 1; height: 8px; background: rgba(255, 255, 255, .3); border-radius: 4px; overflow: hidden; }
+.recorrido i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--verde), var(--amarillo), var(--naranja)); transition: width .4s; }
+.llegada { margin: 0 0 6px; font-weight: 800; color: var(--naranja); }

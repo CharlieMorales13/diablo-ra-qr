@@ -4,6 +4,8 @@ Minijuego de **realidad aumentada** para el teléfono que se activa con un **mar
 
 > Actividad 1 · Realidad Virtual y Aumentada · 2026
 
+**La historia:** el Diablo se quedó dormido en la **Sierra Norte de Juárez** y sus compañeros se fueron en los camiones a la **Guelaguetza**. Hay que bajar corriendo por el bosque hasta el Valle de Oaxaca. Una barra "Sierra Norte → Guelaguetza" avanza con cada puerta, la última lleva el letrero de la Guelaguetza y, si llegas con vidas, el final dice que llegaste a tiempo.
+
 **Pruébalo:** https://diablo-ra-qr.carlos-gomez-dev13.workers.dev/ · **Modo demo en PC:** https://diablo-ra-qr.carlos-gomez-dev13.workers.dev/?demo
 
 ![Juego en acción](docs/capturas/juego.png)
@@ -56,7 +58,7 @@ js/preguntas.js       banco de preguntas "atrapa al intruso"
 js/modelos.js         carga de GLB con respaldo procedural
 js/audio.js           música y efectos con Web Audio
 assets/targets.mind   marcador compilado para MindAR
-assets/models/        diablo.glb, maguey.glb (agave), mezcal.glb, takis.glb
+assets/models/        diablo.glb, maguey.glb (agave), mezcal.glb, takis.glb, bosque_*.glb
 modelos/              script de Blender que prepara los modelos
 marcador/             generador del marcador y compilador de MindAR
 ```
@@ -106,12 +108,14 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 | `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo las animaciones `Alert` (de frente al inicio), `Running` (al correr) y `All_Night_Dance` (pantalla final). De 18 MB a 1.7 MB. | 1.7 MB |
 | `maguey.glb` | [Agave Americana](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6), escaneo de Discobolo | De 1 M triángulos y 48 MB a 16 k. Se le quita el cuadro de tierra del escaneo por color de textura (café contra verde) y altura. | 582 KB |
 | `mezcal.glb` | [Malaespina Mezcal bottle](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) de santibanezjuan | Malla a 4 k triángulos y texturas de 512 px | 305 KB |
+| `bosque_pino.glb`, `bosque_abedul.glb`, `bosque_roca.glb` | [[UPDATE] Dirt Road Through Forest](https://sketchfab.com/3d-models/update-dirt-road-through-forest-c4676cdf7715484382400ff63faffd45) de 99.Miles | La escena pesa 89 MB y sus árboles son mallas enormes con miles de planos de follaje. `modelos/preparar_bosque.py` toma el tronco más aislado de cada tipo y recorta todo lo que hay a su alrededor, deja solo la textura de color con transparencia y la reduce. Pasan a los lados del camino y se reciclan al salir de cuadro. | 0.9 MB, 0.9 MB y 121 KB |
 | `takis.glb` | [Takis Fuego - México](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) de Luiss Maker | Malla a 5 k triángulos y texturas de 512 px | 176 KB |
 
 Para regenerarlos, con el GLB de Meshy y los GLB de Sketchfab descargados en una carpeta:
 
 ```bash
 blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_sketchfab>
+blender --background --python modelos/preparar_bosque.py -- <carpeta_sketchfab>/update_dirt_road_through_forest.glb
 ```
 
 En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, Takis 12 cm en la escala del marcador), la animación de correr se acelera con la velocidad del Diablo y, si faltara un GLB, se usa un respaldo procedural.
@@ -131,6 +135,7 @@ En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, 
 | Diablo de Juxtlahuaca (prompt propio, rig y animaciones) | Generado con [Meshy AI](https://www.meshy.ai), plan gratuito | CC BY 4.0 |
 | Agave (*Agave Americana*) | [Discobolo · Sketchfab](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6) | CC BY 4.0 |
 | Botella de mezcal (*Malaespina Mezcal bottle*) | [santibanezjuan · Sketchfab](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) | CC BY 4.0 |
+| Árboles y rocas del bosque (*[UPDATE] Dirt Road Through Forest*) | [99.Miles · Sketchfab](https://sketchfab.com/3d-models/update-dirt-road-through-forest-c4676cdf7715484382400ff63faffd45) | CC BY 4.0 |
 | Bolsa de Takis (*Takis Fuego - México*) | [Luiss Maker · Sketchfab](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) | CC BY 4.0 |
 | Música y efectos | Sintetizados en código (`js/audio.js`), autoría propia | MIT |
 | MindAR | HiuKim Yuen | MIT |

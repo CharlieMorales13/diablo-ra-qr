@@ -44,7 +44,7 @@ const PREGUNTA_TUTORIAL = {
   dato: 'El mole poblano es de Puebla. Oaxaca presume siete moles.',
 };
 const TUTORIAL = [
-  { texto: 'Él es el <b>Diablo de Juxtlahuaca</b>. Va a correr sobre tu marcador y tú lo guías.', boton: 'Siguiente' },
+  { texto: 'Él es el <b>Diablo de Juxtlahuaca</b>. Se quedó dormido en la <b>Sierra Norte de Juárez</b> y sus compañeros se fueron en los camiones a la <b>Guelaguetza</b>. Ayúdalo a bajar corriendo al Valle de Oaxaca.', boton: 'Siguiente' },
   { texto: 'Cuando estés listo toca <b>¡A correr!</b>: se voltea y la vista se pone detrás de él.', espera: 'arranque' },
   { texto: 'Vienen unos <b>Takis</b> que valen 25 puntos. Desliza a la izquierda o toca <b>◀</b> para ir por ellos.', crear: { tipo: 'takis', carril: 0 }, cuando: 0.45, espera: 'carril', carril: 0 },
   { texto: 'Un <b>maguey</b> en tu carril. Desliza hacia arriba o toca <b>SALTAR</b>.', crear: { tipo: 'maguey' }, cuando: 0.11, espera: 'salto' },
@@ -68,7 +68,7 @@ const ui = {
   pista: $('pista'), aviso: $('aviso'), escaneo: $('escaneo'), cuenta: $('cuenta'),
   inicio: $('inicio'), final: $('final'), rango: $('rango'), resumen: $('resumen'), record: $('record'),
   tarjeta: $('tarjeta'), tarjetaTexto: $('tarjeta-texto'), tarjetaBoton: $('tarjeta-boton'),
-  correr: $('correr'),
+  correr: $('correr'), recorrido: $('recorrido'), llegada: $('llegada'),
   opciones: [...document.querySelectorAll('.opcion')],
 };
 
@@ -116,8 +116,43 @@ const camino = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ map: texCamino, transparent: true, opacity: 0.95 }),
 );
 camino.rotation.x = -Math.PI / 2;
-camino.position.set(0, 0.001, -0.65);
+camino.position.set(0, 0.002, -0.65);
 contenido.add(camino);
+
+// piso del bosque a los lados del camino
+const piso = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshStandardMaterial({ map: crearTexturaPasto() }));
+piso.rotation.x = -Math.PI / 2;
+piso.position.set(0, 0.001, -0.65);
+contenido.add(piso);
+
+// árboles y rocas que pasan a los lados, reciclados al salir de cuadro
+const paisaje = [];
+const LARGO_PAISAJE = Z_SALIDA - Z_APARECE;
+function sembrarPaisaje() {
+  for (let i = 0; i < 26; i++) {
+    const modelo = modelos.paisaje[i % modelos.paisaje.length];
+    const obj = modelo.clone();
+    obj.userData.escala = 0.8 + Math.random() * 0.5;
+    obj.rotation.y = Math.random() * Math.PI * 2;
+    const p = { obj, z: Z_APARECE + (i / 26) * LARGO_PAISAJE };
+    acomodar(p);
+    contenido.add(obj);
+    paisaje.push(p);
+  }
+}
+function acomodar(p) {
+  const lado = Math.random() < 0.5 ? -1 : 1;
+  p.obj.position.set(lado * (0.46 + Math.random() * 0.4), 0, p.z); // pegados a la orilla: en vertical se ve poco a los lados
+}
+function moverPaisaje(dz) {
+  for (const p of paisaje) {
+    p.z += dz;
+    if (p.z > Z_SALIDA) { p.z -= LARGO_PAISAJE; acomodar(p); }
+    p.obj.position.z = p.z;
+    // crece al asomar en el horizonte en lugar de aparecer de golpe
+    p.obj.scale.setScalar(p.obj.userData.escala * suave(THREE.MathUtils.clamp((p.z - Z_APARECE) / 0.35, 0, 1)));
+  }
+}
 
 // ---------- estado ----------
 let modelos = null;
@@ -195,6 +230,23 @@ function crearTexturaCamino() {
   return t;
 }
 
+function crearTexturaPasto() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#3d5a2a';
+  g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 1400; i++) { // pasto, hojas secas y tierra
+    g.fillStyle = ['#4f7034', '#2f4721', '#6b5a32', '#587a3a'][i % 4];
+    g.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 3, 2 + Math.random() * 3);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(4, 3);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 function texturaLetrero(texto) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 280;
@@ -234,7 +286,7 @@ function partirTexto(g, texto, ancho) {
 }
 
 // ---------- entidades ----------
-function crearPuerta(pregunta, z) {
+function crearPuerta(pregunta, z, ultima = false) {
   // baraja opciones y recuerda en qué carril quedó el intruso
   const orden = barajar([0, 1, 2]);
   const opciones = orden.map(i => pregunta.opciones[i]);
@@ -258,6 +310,11 @@ function crearPuerta(pregunta, z) {
     letrero.position.set(CARRILES[i], 0.11, 0);
     g.add(letrero);
   });
+  if (ultima) { // la entrada al Valle: la Guelaguetza
+    const meta = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.1), new THREE.MeshBasicMaterial({ map: texturaLetrero('¡GUELAGUETZA!') }));
+    meta.position.y = 0.28;
+    g.add(meta);
+  }
   return { tipo: 'puerta', obj: g, z, pregunta, opciones, intruso, resuelta: false };
 }
 
@@ -299,7 +356,7 @@ function programarTramo(zInicio) {
     agregar(crearObjeto('mezcal', z + 0.15));
     z -= 0.15;
   }
-  agregar(crearPuerta(e.bolsa[indice], z - DESPEJE));
+  agregar(crearPuerta(e.bolsa[indice], z - DESPEJE, indice === TOTAL_PUERTAS - 1));
 }
 
 // ---------- flujo de partida ----------
@@ -335,7 +392,7 @@ function prepararSalida(tutorial) {
   if (tutorial) entrarPaso(0);
   else {
     ui.correr.classList.remove('oculto');
-    mostrarTarjeta(`Dificultad <b>${estado.dif.nombre}</b>. Toca <b>¡A correr!</b> cuando estés listo.`);
+    mostrarTarjeta(`¡Te dormiste y los camiones ya se fueron a la Guelaguetza! Baja de la Sierra Norte al valle. Dificultad <b>${estado.dif.nombre}</b>: toca <b>¡A correr!</b>`);
   }
 }
 
@@ -384,6 +441,8 @@ function terminar() {
   const clave = `diablo-record-${ajustes.dificultad}`;
   const record = Math.max(e.puntos, Number(leer(clave)) || 0);
   guardar(clave, record);
+  const llego = e.vidas > 0 && e.puertasCruzadas >= TOTAL_PUERTAS;
+  ui.llegada.textContent = llego ? '¡Llegaste a tiempo a la Guelaguetza!' : 'Te quedaste en el camino y no llegaste a la Guelaguetza.';
   ui.rango.textContent = rango;
   ui.resumen.textContent = `${a} de ${TOTAL_PUERTAS} intrusos atrapados · ${e.puntos} puntos · ${e.dif.nombre}`;
   ui.record.textContent = `Récord en ${e.dif.nombre.toLowerCase()}: ${record}`;
@@ -503,6 +562,7 @@ function actualizarHUD() {
   ui.vidas.textContent = '❤'.repeat(Math.max(0, e.vidas)) + '♡'.repeat(Math.max(0, e.dif.vidas - e.vidas));
   ui.puerta.textContent = e.tutorial ? 'Tutorial' : `Puerta ${Math.min(e.puertasCruzadas + 1, TOTAL_PUERTAS)}/${TOTAL_PUERTAS}`;
   ui.puntos.textContent = e.puntos + (e.combo > 1 ? ` x${e.combo}` : '');
+  ui.recorrido.style.width = `${(e.puertasCruzadas / TOTAL_PUERTAS) * 100}%`;
   ui.opciones.forEach((b, i) => b.classList.toggle('activa', i === e.carril));
 }
 
@@ -719,6 +779,8 @@ function actualizar(dt) {
   if (!corriendo()) return;
   const v = velocidadReal(e);
   texCamino.offset.y += v * dt * 1.2;
+  piso.material.map.offset.y += v * dt * 1.15;
+  moverPaisaje(v * dt);
 
   for (const ent of e.entidades) {
     ent.z += v * dt;
@@ -801,6 +863,8 @@ async function empezar(tutorial) {
   diablo = modelos.diablo.objeto;
   diablo.children.forEach(c => (c.userData.y0 = c.position.y));
   contenido.add(diablo);
+  sembrarPaisaje();
+  moverPaisaje(0);
   if (modelos.diablo.clips.length) {
     mixer = new THREE.AnimationMixer(diablo);
     const clips = modelos.diablo.clips;

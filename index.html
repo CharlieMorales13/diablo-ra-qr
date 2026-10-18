@@ -26,6 +26,9 @@
       <span id="puerta">Puerta 0/12</span>
       <span id="puntos">0</span>
     </div>
+    <div class="recorrido" aria-label="Avance hacia la Guelaguetza">
+      <span>Sierra Norte</span><div><i id="recorrido"></i></div><span>Guelaguetza</span>
+    </div>
     <div id="pista" class="oculto"></div>
     <div id="aviso" class="oculto"></div>
     <div id="tarjeta" class="oculto">
@@ -55,7 +58,7 @@
   <!-- Pantalla de inicio -->
   <section id="inicio" class="pantalla">
     <h1>ATRAPA AL <em>INTRUSO</em></h1>
-    <p class="sub">El Diablo de Juxtlahuaca corre por Oaxaca. ¿Qué tanto sabes de tu tierra?</p>
+    <p class="sub">El Diablo de Juxtlahuaca se quedó dormido en la Sierra Norte de Juárez y sus compañeros se fueron en los camiones a la Guelaguetza. ¡Baja corriendo al Valle de Oaxaca y demuestra cuánto sabes de tu tierra!</p>
     <ol class="reglas">
       <li>En cada una de las 12 puertas hay 3 letreros: <b>2 son ciertos y 1 es el intruso</b>. Cruza por el intruso.</li>
       <li><b>Desliza</b> ← → o usa ◀ ▶ para cambiar de carril, y desliza ↑ o toca <b>SALTAR</b> para brincar.</li>
@@ -83,6 +86,7 @@
 
   <!-- Pantalla final -->
   <section id="final" class="pantalla oculto">
+    <p id="llegada" class="llegada"></p>
     <h2 id="rango"></h2>
     <p id="resumen"></p>
     <p id="record"></p>
