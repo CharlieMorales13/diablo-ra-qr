@@ -1,4 +1,4 @@
-# Atrapa al Intruso: un Tiliche de Putla corriendo en realidad aumentada 🇲🇽
+# Atrapa al Intruso: un Diablo de Juxtlahuaca corriendo en realidad aumentada 🇲🇽
 
 *Borrador para LinkedIn (≈420 palabras). Agrega el video o GIF y cambia los enlaces antes de publicar.*
 
@@ -7,13 +7,13 @@
 ¿Qué tanto sabes de Oaxaca? Para mi primera actividad de Realidad Virtual y Aumentada hice un minijuego de RA que se activa con un marcador QR que diseñé yo, y que pone a prueba lo que sabes de la cultura oaxaqueña.
 
 🎯 **Objetivo**
-Hacer una experiencia móvil que, al reconocer un marcador propio, despliegue un juego con tres modelos 3D y botones táctiles con retroalimentación. Quería algo que no fuera el típico cubo flotando, así que elegí al **Tiliche**, el personaje del carnaval de Putla Villa de Guerrero, con su traje de retazos de tela que vuela al bailar.
+Hacer una experiencia móvil que, al reconocer un marcador propio, despliegue un juego con tres modelos 3D y botones táctiles con retroalimentación. Quería algo que no fuera el típico cubo flotando, así que elegí a un **Diablo de Juxtlahuaca**, personaje de las danzas de la Mixteca oaxaqueña.
 
 🕹️ **Cómo funciona**
-Al apuntar el teléfono al marcador aparece un camino sobre el papel y el Tiliche empieza a correr. Cada pocos segundos llega una puerta con tres letreros: dos son ciertos y uno es *el intruso*. Por ejemplo: "¿Qué comparsa NO es del carnaval putleco? Copalas, Mascaritas, Parachicos". Cambias de carril con botones en pantalla para atrapar al intruso. Hay 12 puertas, 3 vidas, combos, mazorcas que dan puntos y magueyes que te hacen tropezar. Al final obtienes un rango, de "Turista" a "Oaxaqueño de corazón".
+Al apuntar el teléfono al marcador aparece un camino sobre el papel y el Diablo empieza a correr. Cada pocos segundos llega una puerta con tres letreros: dos son ciertos y uno es *el intruso*. Por ejemplo: "¿Qué comparsa NO es del carnaval putleco? Copalas, Mascaritas, Parachicos". Cambias de carril con botones en pantalla para atrapar al intruso. Hay 12 puertas, 3 vidas, combos, mazorcas que dan puntos y magueyes que te hacen tropezar. Al final obtienes un rango, de "Turista" a "Oaxaqueño de corazón".
 
 🛠️ **Herramientas**
-MindAR para el rastreo de imagen en el navegador, three.js para el 3D, modelos CC0 de Kenney adaptados en Blender (vestí a un personaje como Tiliche con traje de retazos y sombrero de palma, más un maguey y una mazorca), Web Audio API para la música y los efectos (todo sintetizado en código) y Python con OpenCV para diseñar y analizar el marcador.
+MindAR para el rastreo de imagen en el navegador, three.js para el 3D, Meshy AI para generar al Diablo con su rig y animación de correr, Blender para bajarlo de 18 MB a 1.5 MB sin romper el rig, modelos CC0 de Kenney para el maguey y la mazorca, Web Audio API para la música y los efectos (todo sintetizado en código) y Python con OpenCV para diseñar y analizar el marcador.
 
 🧩 **Retos**
 1. **El marcador.** Un QR solo es muy repetitivo y el rastreador se pierde. Le agregué un marco con muesca asimétrica, grecas de Mitla y tipografía grande, y lo medí con OpenCV hasta llegar a unos 8,900 puntos de rastreo con baja simetría.
@@ -25,7 +25,7 @@ MindAR para el rastreo de imagen en el navegador, three.js para el 3D, modelos C
 Una experiencia web que se abre desde el navegador, sin instalar nada, con sonido, vibración y confeti en cada acierto. Fue la mejor excusa para aprender RA y, de paso, presumir un poco de Oaxaca.
 
 🎥 [video / GIF aquí]
-💻 Repositorio: https://github.com/TU-USUARIO/01-tiliche-ra-qr
+💻 Repositorio: https://github.com/TU-USUARIO/01-diablo-ra-qr
 🔗 Pruébalo: https://TU-URL
 
 #RealidadAumentada #WebAR #MindAR #threejs #Oaxaca #DesarrolloWeb #Gamificación

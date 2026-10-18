@@ -1,6 +1,6 @@
-# Atrapa al Intruso · Tiliche RA
+# Atrapa al Intruso · Diablo RA
 
-Minijuego de **realidad aumentada** para el teléfono que se activa con un **marcador QR de diseño propio**. Al apuntar la cámara al marcador aparece un camino sobre el papel por el que corre un **Tiliche**, el personaje del carnaval de Putla Villa de Guerrero, Oaxaca. En cada puerta hay tres letreros sobre cultura oaxaqueña: dos son ciertos y uno es **el intruso**. Hay que cambiar de carril para que el Tiliche cruce por el intruso.
+Minijuego de **realidad aumentada** para el teléfono que se activa con un **marcador QR de diseño propio**. Al apuntar la cámara al marcador aparece un camino sobre el papel por el que corre un **Diablo de Juxtlahuaca**, personaje de las danzas de Santiago Juxtlahuaca, en la Mixteca oaxaqueña. En cada puerta hay tres letreros sobre cultura oaxaqueña: dos son ciertos y uno es **el intruso**. Hay que cambiar de carril para que el Diablo cruce por el intruso.
 
 > Actividad 1 · Realidad Virtual y Aumentada · 2026
 
@@ -12,7 +12,7 @@ Minijuego de **realidad aumentada** para el teléfono que se activa con un **mar
 |---|---|
 | **Objetivo** | Atrapar al intruso en las 12 puertas. |
 | **Reglas** | Cada puerta muestra una pista arriba y 3 opciones abajo. Cambia de carril con ◀ ▶ o tocando la opción. |
-| **Puntaje** | Acierto: +100 con combo x2 y x3, y el Tiliche acelera. Mazorca: +25. Maguey: −30 y tropiezas. |
+| **Puntaje** | Acierto: +100 con combo x2 y x3, y el Diablo acelera. Mazorca: +25. Maguey: −30 y tropiezas. |
 | **Vidas** | 3 ❤. Cada intruso que se escapa cuesta una. |
 | **Fin** | Al cruzar las 12 puertas o al perder las 3 vidas. Se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
 | **Retroalimentación** | Los botones se encogen y suenan al tocarlos. Un acierto lanza confeti, un acorde y una vibración corta. Un error hace un destello rojo, un zumbido y una vibración doble. Si pierdes el marcador, el juego se pausa. |
@@ -26,7 +26,8 @@ El banco tiene **41 preguntas para oaxaqueños**: regiones, los 7 moles, magueye
 - Web Audio API: música y efectos sintetizados en código.
 - Vibration API: retroalimentación háptica en Android.
 - Python + Pillow + qrcode + OpenCV: generación y análisis del marcador.
-- Blender 5.2: adaptación de los modelos CC0 de [Kenney](https://kenney.nl) (traje de Tiliche, texturas incrustadas).
+- Meshy AI: modelo del Diablo con rig y animaciones.
+- Blender 5.2: reducción del Diablo y adaptación de los modelos CC0 de [Kenney](https://kenney.nl).
 
 No hay paso de compilación: es HTML + JavaScript (módulos ES) y las librerías se cargan desde jsDelivr.
 
@@ -40,7 +41,7 @@ js/preguntas.js       banco de preguntas "atrapa al intruso"
 js/modelos.js         carga de GLB con respaldo procedural
 js/audio.js           música y efectos con Web Audio
 assets/targets.mind   marcador compilado para MindAR
-assets/models/        tiliche.glb, maguey.glb, mazorca.glb
+assets/models/        diablo.glb, maguey.glb, mazorca.glb
 modelos/              script de Blender que prepara los modelos
 marcador/             generador del marcador y compilador de MindAR
 ```
@@ -49,7 +50,7 @@ marcador/             generador del marcador y compilador de MindAR
 
 1. Clona el repositorio:
    ```bash
-   git clone <url-del-repo> && cd 01-tiliche-ra-qr
+   git clone <url-del-repo> && cd 01-diablo-ra-qr
    ```
 2. Sirve la carpeta con cualquier servidor estático:
    ```bash
@@ -85,21 +86,19 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 
 ### Modelos 3D
 
-Los tres modelos son de uso público (**CC0**) de [Kenney](https://kenney.nl) y se adaptan con `modelos/preparar_modelos.py` en Blender:
-
-| Modelo | Base CC0 | Adaptación | Peso |
+| Modelo | Origen | Adaptación en Blender (`modelos/preparar_modelos.py`) | Peso |
 |---|---|---|---|
-| `tiliche.glb` | *Mini Characters 1.0* · `character-male-c` (con animaciones) | Traje de retazos de tela en 6 colores pesado a los huesos (se mueve al correr), sombrero de palma y barba y bigote de máscara de viejito. Solo conserva las animaciones `sprint` e `idle`. | 381 KB |
-| `maguey.glb` | *Nature Kit 2.1* · `plant_flatShort` | Recoloreado en verde azulado de agave | 3 KB |
-| `mazorca.glb` | *Food Kit 2.0* · `corn` | Textura incrustada en el GLB | 20 KB |
+| `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo la animación `Running`. De 18 MB a 1.5 MB. | 1.5 MB |
+| `maguey.glb` | *Nature Kit 2.1* de Kenney · `plant_flatShort` | Recoloreado en verde azulado de agave | 3 KB |
+| `mazorca.glb` | *Food Kit 2.0* de Kenney · `corn` | Textura incrustada en el GLB | 16 KB |
 
-Para regenerarlos, descarga y descomprime los tres kits de kenney.nl en una carpeta y corre:
+Para regenerarlos, con el GLB de Meshy y los kits de kenney.nl descomprimidos en una carpeta:
 
 ```bash
-blender --background --python modelos/preparar_modelos.py -- <carpeta_con_los_kits>
+blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_kenney>
 ```
 
-En el juego cada modelo se escala solo (Tiliche 24 cm, maguey 12 cm, mazorca 7 cm en la escala del marcador), la animación `sprint` se acelera con la velocidad del Tiliche y, si faltara un GLB, se usa un respaldo procedural.
+En el juego cada modelo se escala solo (Diablo 24 cm, maguey 12 cm, mazorca 7 cm en la escala del marcador), la animación de correr se acelera con la velocidad del Diablo y, si faltara un GLB, se usa un respaldo procedural.
 
 ## Capturas
 
@@ -113,8 +112,7 @@ En el juego cada modelo se escala solo (Tiliche 24 cm, maguey 12 cm, mazorca 7 c
 |---|---|---|
 | Código del juego | Carlos Antonio Gómez Morales | MIT (ver `LICENSE`) |
 | Marcador "Atrapa al intruso" | Carlos Antonio Gómez Morales | MIT |
-| Personaje base del Tiliche | [Kenney · Mini Characters](https://kenney.nl/assets/mini-characters) | CC0 1.0 |
-| Traje de Tiliche (retazos, sombrero, barba) | Carlos Antonio Gómez Morales, sobre la base de Kenney | CC0 / MIT |
+| Diablo de Juxtlahuaca (prompt propio, rig y animaciones) | Generado con [Meshy AI](https://www.meshy.ai), plan gratuito | CC BY 4.0 |
 | Maguey (`plant_flatShort`) | [Kenney · Nature Kit](https://kenney.nl/assets/nature-kit) | CC0 1.0 |
 | Mazorca (`corn`) | [Kenney · Food Kit](https://kenney.nl/assets/food-kit) | CC0 1.0 |
 | Música y efectos | Sintetizados en código (`js/audio.js`), autoría propia | MIT |
