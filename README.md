@@ -27,7 +27,7 @@ En el menú se elige dónde está el marcador. **Mesa o piso**: el camino se acu
 | **Premios** | Bolsa de **Takis** +25. **Botella de mezcal**: +50 y 4 s de turbo, más rápido y atravesando los obstáculos. |
 | **Puntaje** | Acierto: +100 con combo x2 y x3, y el Diablo acelera. Cada puerta sube un poco la velocidad. |
 | **Dificultad** | **Media**, **Difícil** y **Muy difícil**: cambian la velocidad inicial (0.32, 0.42 y 0.54 marcadores por segundo), la aceleración, los obstáculos por tramo (2, 3 y 4), qué tan seguido sale la cerca y las vidas (3, 3 y 2). Hay récord por dificultad. |
-| **Tutorial** | La primera vez se juega un tutorial de 8 pasos que pausa la acción y explica cada cosa: mazorca, agave, salto, cerca y cómo cruzar por el intruso. Se puede repetir con el botón **Tutorial**. |
+| **Tutorial** | La primera vez se juega un tutorial de 8 pasos que pausa la acción y explica cada cosa: Takis, agave, salto, cerca y cómo cruzar por el intruso. Se puede repetir con el botón **Tutorial**. |
 | **Vidas** | Cada intruso que se escapa o cada cerca que no saltas cuesta un ❤. |
 | **Fin** | Al cruzar las 12 puertas o al perder las 3 vidas. El Diablo voltea hacia ti y baila, y se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
 | **Retroalimentación** | Los botones se encogen y suenan al tocarlos. Un acierto lanza confeti, un acorde y una vibración corta. Un error hace un destello rojo, un zumbido y una vibración doble. Si pierdes el marcador, el juego se pausa. Con turbo, la pantalla se enciende con un borde de fuego. |
