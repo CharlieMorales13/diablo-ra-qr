@@ -110,7 +110,7 @@ def quitar_suelo(obj):
     print("suelo: caras quitadas", len(borrar), "sueltas", len(sueltas))
 
 
-def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512):
+def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512, unir=False):
     """Une las mallas de un GLB de Sketchfab, las reduce y exporta con texturas de `px` px."""
     limpiar()
     importar(os.path.join(SKETCHFAB, archivo))
@@ -123,6 +123,12 @@ def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512):
     bpy.ops.object.join()
     obj = bpy.context.view_layer.objects.active
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    if unir:  # escaneo partido en pedazos: sin unir los vértices, al reducir se abren hoyos
+        bm = bmesh.new()
+        bm.from_mesh(obj.data)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
+        bm.to_mesh(obj.data)
+        bm.free()
     if len(obj.data.polygons) > caras:
         d = obj.modifiers.new("reducir", "DECIMATE")
         d.ratio = caras / len(obj.data.polygons)
@@ -148,4 +154,4 @@ reducir_sketchfab("takis_fuego_-_mexico.glb", 5000, "takis.glb")
 
 # ---------------------------------------------------------------- camino de grava (piso)
 # Llena toda la pantalla: conserva la textura de 1024 px.
-reducir_sketchfab("gravel_road.glb", 5000, "camino.glb", px=1024)
+reducir_sketchfab("gravel_road.glb", 5000, "camino.glb", px=1024, unir=True)
