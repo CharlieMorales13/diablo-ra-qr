@@ -1,4 +1,4 @@
-"""Prepara los 3 modelos del juego.
+"""Prepara los modelos del juego.
 
 Uso:
     blender --background --python modelos/preparar_modelos.py -- <diablo_meshy.glb> <carpeta_sketchfab>
@@ -9,6 +9,7 @@ CC BY 4.0) con su rig automático y animaciones ("Running", "Alert", ...).
     agave_americana.glb           "Agave Americana" de Discobolo
     malaespina_mezcal_bottle.glb  "Malaespina Mezcal bottle" de santibanezjuan
     takis_fuego_-_mexico.glb      "Takis Fuego - México" de Luiss Maker
+    gravel_road.glb               "gravel road" de SPLEEN VISION
 
 Genera en assets/models/ (texturas incrustadas):
     diablo.glb    el diablo reducido de ~211 k a ~20 k triángulos, texturas de
@@ -18,6 +19,7 @@ Genera en assets/models/ (texturas incrustadas):
     maguey.glb    agave escaneado (1 M triángulos, 48 MB) reducido para el teléfono.
     mezcal.glb    botella de mezcal reducida (turbo del Diablo).
     takis.glb     bolsa de Takis Fuego reducida (premio de +25).
+    camino.glb    tramo de camino de grava escaneado: el piso por el que corre.
 """
 import os
 import sys
@@ -108,8 +110,8 @@ def quitar_suelo(obj):
     print("suelo: caras quitadas", len(borrar), "sueltas", len(sueltas))
 
 
-def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None):
-    """Une las mallas de un GLB de Sketchfab, las reduce y exporta con texturas de 512 px."""
+def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512):
+    """Une las mallas de un GLB de Sketchfab, las reduce y exporta con texturas de `px` px."""
     limpiar()
     importar(os.path.join(SKETCHFAB, archivo))
     mallas = [o for o in bpy.data.objects if o.type == "MESH"]
@@ -128,8 +130,8 @@ def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None):
     for e in [x for x in bpy.data.objects if x.type == "EMPTY"]:
         bpy.data.objects.remove(e)
     for img in bpy.data.images:
-        if img.size[0] > 512:
-            img.scale(512, 512)
+        if img.size[0] > px:
+            img.scale(px, px)
     if limpiar_malla:
         limpiar_malla(obj)
     exportar(salida)
@@ -143,3 +145,7 @@ reducir_sketchfab("malaespina_mezcal_bottle.glb", 4000, "mezcal.glb")
 
 # ---------------------------------------------------------------- takis (premio)
 reducir_sketchfab("takis_fuego_-_mexico.glb", 5000, "takis.glb")
+
+# ---------------------------------------------------------------- camino de grava (piso)
+# Llena toda la pantalla: conserva la textura de 1024 px.
+reducir_sketchfab("gravel_road.glb", 5000, "camino.glb", px=1024)

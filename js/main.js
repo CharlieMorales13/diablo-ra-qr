@@ -134,6 +134,35 @@ camino.rotation.x = -Math.PI / 2;
 camino.position.set(0, 0.001, -0.65);
 contenido.add(camino);
 
+// Piso de grava escaneada: tramos que se reciclan al pasar junto a la cámara.
+const ANCHO_CAMINO = 0.72;
+const FIN_CAMINO = 0.9; // hasta dónde llega el piso hacia la cámara
+const tramos = [];
+let pasoTramo = 0;
+function armarCamino(modelo) {
+  const caja = new THREE.Box3().setFromObject(modelo);
+  const tam = caja.getSize(new THREE.Vector3());
+  const k = ANCHO_CAMINO / tam.x;
+  // ponytail: grava aplanada a 30% para que el Diablo no se hunda en los baches
+  modelo.scale.set(k, k * 0.3, k);
+  modelo.position.set(-(caja.min.x + caja.max.x) / 2 * k, -caja.max.y * k * 0.3, -(caja.min.z + caja.max.z) / 2 * k);
+  pasoTramo = tam.z * k * 0.98; // se enciman un poco para no ver la orilla del escaneo
+  for (let i = 0; i < 3; i++) {
+    const tramo = new THREE.Group().add(i ? modelo.clone() : modelo);
+    tramo.position.z = FIN_CAMINO - pasoTramo * (i + 0.5);
+    contenido.add(tramo);
+    tramos.push(tramo);
+  }
+  camino.visible = false;
+}
+
+function moverCamino(dz) {
+  for (const t of tramos) {
+    t.position.z += dz;
+    if (t.position.z - pasoTramo / 2 > FIN_CAMINO) t.position.z -= tramos.length * pasoTramo;
+  }
+}
+
 // ---------- estado ----------
 let modelos = null;
 let diablo = null;
@@ -733,6 +762,7 @@ function actualizar(dt) {
   if (!corriendo()) return;
   const v = velocidadReal(e);
   texCamino.offset.y += v * dt * 1.2;
+  moverCamino(v * dt);
 
   for (const ent of e.entidades) {
     ent.z += v * dt;
@@ -811,6 +841,7 @@ async function empezar(tutorial) {
   diablo = modelos.diablo.objeto;
   diablo.children.forEach(c => (c.userData.y0 = c.position.y));
   contenido.add(diablo);
+  if (modelos.camino) armarCamino(modelos.camino);
   if (modelos.diablo.clips.length) {
     mixer = new THREE.AnimationMixer(diablo);
     const clips = modelos.diablo.clips;

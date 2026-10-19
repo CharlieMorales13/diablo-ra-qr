@@ -95,11 +95,12 @@ function vallaProcedural() {
 }
 
 export async function cargarModelos() {
-  const [diablo, maguey, takis, mezcal] = await Promise.all([
+  const [diablo, maguey, takis, mezcal, camino] = await Promise.all([
     cargarGLB('assets/models/diablo.glb'),
     cargarGLB('assets/models/maguey.glb'),
     cargarGLB('assets/models/takis.glb'),
     cargarGLB('assets/models/mezcal.glb'),
+    cargarGLB('assets/models/camino.glb'),
   ]);
   return {
     diablo: diablo
@@ -110,5 +111,6 @@ export async function cargarModelos() {
     takis: takis ? normalizar(takis.scene, 0.12) : takisProcedural(), // grandes para que se vean
     mezcal: mezcal ? normalizar(mezcal.scene, 0.08) : mezcalProcedural(),
     valla: vallaProcedural(),
+    camino: camino?.scene ?? null, // grava escaneada; sin ella queda el camino dibujado
   };
 }
