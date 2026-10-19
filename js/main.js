@@ -13,22 +13,17 @@ const TOTAL_PUERTAS = 12;
 const SALTO = { alto: 0.13, duracion: 0.62 };
 const TURBO = { duracion: 4, factor: 1.6, puntos: 50 }; // botella de mezcal
 const PROB_MEZCAL = 0.3; // por tramo
-const ESCALA_INTRO = 1.6;
-// Mientras se ve el marcador, el juego se agranda según la distancia para
-// ocupar casi toda la pantalla: no hace falta acercarse al papel.
-const DISTANCIA_REF = 1.7; // en anchos de marcador; menor = juego más grande
-const ESCALA_MAX = 4;   // de frente y de cerca antes de arrancar
+const ESCALA_INTRO = 1.6;   // de frente y de cerca antes de arrancar
+// El marcador solo inicia el juego: al verlo, el camino sale del papel y se
+// queda fijo frente a la cámara. Así se juega aunque el marcador salga de cuadro.
+// Posición de la cámara respecto al camino, en anchos de marcador.
+const VISTA = { altura: 1.1, atras: 1.25, mira: 0.1 }; // ponytail: encuadre fijo, se ajusta aquí
+const DESPEGUE = 0.9; // segundos que tarda el camino en salir del marcador
 const VELOCIDAD_ANIMACION = 0.32; // velocidad a la que la animación de correr se ve natural
 const DIFICULTADES = {
   media: { nombre: 'Media', velocidad: 0.32, aceleracion: 1.04, vidas: 3, obstaculos: 2, valla: 0.35 },
   dificil: { nombre: 'Difícil', velocidad: 0.42, aceleracion: 1.05, vidas: 3, obstaculos: 3, valla: 0.6 },
   'muy-dificil': { nombre: 'Muy difícil', velocidad: 0.54, aceleracion: 1.06, vidas: 2, obstaculos: 4, valla: 0.85 },
-};
-// Sobre una mesa el camino se acuesta en el papel. En la pared sale del muro
-// hacia ti, inclinado para que se vea desde enfrente (como un portal).
-const COLOCACION = {
-  mesa: { rotacion: Math.PI / 2, y: 0 },
-  pared: { rotacion: Math.PI / 6, y: -0.35 }, // ponytail: inclinación fija de 30°, se ajusta aquí
 };
 const DEMO = new URLSearchParams(location.search).has('demo');
 
@@ -44,13 +39,13 @@ const PREGUNTA_TUTORIAL = {
   dato: 'El mole poblano es de Puebla. Oaxaca presume siete moles.',
 };
 const TUTORIAL = [
-  { texto: 'Él es el <b>Diablo de Juxtlahuaca</b>. Se quedó dormido en la <b>Sierra Norte de Juárez</b> y sus compañeros se fueron en los camiones a la <b>Guelaguetza</b>. Ayúdalo a bajar corriendo al Valle de Oaxaca.', boton: 'Siguiente' },
+  { texto: 'Él es el <b>Diablo de Juxtlahuaca</b>. Se quedó dormido en la <b>Sierra Norte de Juárez</b> y sus compañeros se fueron en los camiones a la <b>Guelaguetza</b>. Ayúdalo a bajar corriendo por el camino de tierra al Valle de Oaxaca.', boton: 'Siguiente' },
   { texto: 'Cuando estés listo toca <b>¡A correr!</b>: se voltea y la vista se pone detrás de él.', espera: 'arranque' },
-  { texto: 'Vienen unos <b>Takis</b> que valen 25 puntos. Desliza a la izquierda o toca <b>◀</b> para ir por ellos.', crear: { tipo: 'takis', carril: 0 }, cuando: 0.45, espera: 'carril', carril: 0 },
-  { texto: 'Un <b>maguey</b> en tu carril. Desliza hacia arriba o toca <b>SALTAR</b>.', crear: { tipo: 'maguey' }, cuando: 0.11, espera: 'salto' },
+  { texto: 'Vienen unos <b>Takis</b> que valen 25 puntos. Desliza el dedo a la <b>izquierda</b> para ir por ellos.', crear: { tipo: 'takis', carril: 0 }, cuando: 0.45, espera: 'carril', carril: 0 },
+  { texto: 'Un <b>maguey</b> en tu carril. Desliza el dedo hacia <b>arriba</b> para saltar.', crear: { tipo: 'maguey' }, cuando: 0.11, espera: 'salto' },
   { texto: 'La <b>cerca de carrizo</b> tapa los tres carriles: solo se puede saltar.', crear: { tipo: 'valla' }, cuando: 0.11, espera: 'salto' },
   { texto: 'Llega una <b>puerta</b>. Arriba está la pista y abajo las 3 opciones: dos son ciertas y una es el <b>intruso</b>.', crear: { tipo: 'puerta' }, cuando: 'visible', boton: 'Entendido' },
-  { texto: 'Cruza por el intruso: toca su opción abajo o desliza hasta su carril.', mismo: true, cuando: 0.5, espera: 'carril', carril: 'intruso' },
+  { texto: 'Cruza por el intruso: desliza el dedo hasta su carril.', mismo: true, cuando: 0.5, espera: 'carril', carril: 'intruso' },
   { texto: '¡Muy bien! Cada acierto suma 100 puntos, sube el combo y acelera al Diablo. Ahora elige tu dificultad.', boton: 'Elegir dificultad', fin: true },
 ];
 
@@ -59,7 +54,6 @@ function leer(clave, valor) { try { return localStorage.getItem(clave) ?? valor;
 function guardar(clave, valor) { try { localStorage.setItem(clave, valor); } catch { /* sin almacenamiento */ } }
 const ajustes = {
   dificultad: DIFICULTADES[leer('diablo-dificultad')] ? leer('diablo-dificultad') : 'media',
-  colocacion: COLOCACION[leer('diablo-colocacion')] ? leer('diablo-colocacion') : 'mesa',
 };
 
 const $ = id => document.getElementById(id);
@@ -93,15 +87,36 @@ const anchor = mindar.addAnchor(0);
 // El marcador vive en el plano XY. `mundo` trabaja con Y hacia arriba y el
 // camino corriendo por Z (lejos = -Z, cerca de la cámara = +Z).
 const mundo = new THREE.Group();
+mundo.rotation.x = Math.PI / 2;
 anchor.group.add(mundo);
 // `contenido` se escala alrededor del Diablo para la toma de frente del inicio.
 const contenido = new THREE.Group();
 mundo.add(contenido);
 
-function aplicarColocacion() {
-  const c = COLOCACION[ajustes.colocacion];
-  mundo.rotation.x = c.rotacion;
-  mundo.position.y = c.y;
+// Al ver el marcador por primera vez, `mundo` deja el ancla y viaja del papel
+// a una pose fija frente a la cámara.
+const desde = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
+const hasta = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3() };
+let despegue = 1;
+
+function liberarMundo(cam) {
+  scene.attach(mundo); // conserva la pose que tiene sobre el papel
+  desde.p.copy(mundo.position); desde.q.copy(mundo.quaternion); desde.s.copy(mundo.scale);
+  // la cámara queda detrás y arriba del Diablo, como en tercera persona
+  const ojo = new THREE.Vector3(0, VISTA.altura, VISTA.atras);
+  const pose = new THREE.Matrix4().lookAt(ojo, new THREE.Vector3(0, 0, VISTA.mira), new THREE.Vector3(0, 1, 0)).setPosition(ojo).invert();
+  const s = desde.s.x; // tamaño del marcador en unidades de la escena
+  cam.updateMatrixWorld();
+  pose.premultiply(new THREE.Matrix4().makeScale(s, s, s)).premultiply(cam.matrixWorld).decompose(hasta.p, hasta.q, hasta.s);
+  despegue = 0;
+}
+
+function moverDespegue(dt) {
+  despegue = Math.min(1, despegue + dt / DESPEGUE);
+  const k = suave(despegue);
+  mundo.position.lerpVectors(desde.p, hasta.p, k);
+  mundo.quaternion.slerpQuaternions(desde.q, hasta.q, k);
+  mundo.scale.lerpVectors(desde.s, hasta.s, k);
 }
 
 function vista(escala) {
@@ -116,43 +131,8 @@ const camino = new THREE.Mesh(
   new THREE.MeshStandardMaterial({ map: texCamino, transparent: true, opacity: 0.95 }),
 );
 camino.rotation.x = -Math.PI / 2;
-camino.position.set(0, 0.002, -0.65);
+camino.position.set(0, 0.001, -0.65);
 contenido.add(camino);
-
-// piso del bosque a los lados del camino
-const piso = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 2.6), new THREE.MeshStandardMaterial({ map: crearTexturaPasto() }));
-piso.rotation.x = -Math.PI / 2;
-piso.position.set(0, 0.001, -0.65);
-contenido.add(piso);
-
-// árboles y rocas que pasan a los lados, reciclados al salir de cuadro
-const paisaje = [];
-const LARGO_PAISAJE = Z_SALIDA - Z_APARECE;
-function sembrarPaisaje() {
-  for (let i = 0; i < 26; i++) {
-    const modelo = modelos.paisaje[i % modelos.paisaje.length];
-    const obj = modelo.clone();
-    obj.userData.escala = 0.8 + Math.random() * 0.5;
-    obj.rotation.y = Math.random() * Math.PI * 2;
-    const p = { obj, z: Z_APARECE + (i / 26) * LARGO_PAISAJE };
-    acomodar(p);
-    contenido.add(obj);
-    paisaje.push(p);
-  }
-}
-function acomodar(p) {
-  const lado = Math.random() < 0.5 ? -1 : 1;
-  p.obj.position.set(lado * (0.46 + Math.random() * 0.4), 0, p.z); // pegados a la orilla: en vertical se ve poco a los lados
-}
-function moverPaisaje(dz) {
-  for (const p of paisaje) {
-    p.z += dz;
-    if (p.z > Z_SALIDA) { p.z -= LARGO_PAISAJE; acomodar(p); }
-    p.obj.position.z = p.z;
-    // crece al asomar en el horizonte en lugar de aparecer de golpe
-    p.obj.scale.setScalar(p.obj.userData.escala * suave(THREE.MathUtils.clamp((p.z - Z_APARECE) / 0.35, 0, 1)));
-  }
-}
 
 // ---------- estado ----------
 let modelos = null;
@@ -161,7 +141,7 @@ let mixer = null;
 const acciones = {}; // alerta, correr y bailar
 let accionActual = null;
 let estado = null;
-let marcadorVisible = false;
+let libre = false; // el marcador ya inició el juego
 let arrancado = false;
 let quiereTutorial = false;
 let camaraDemo = null;
@@ -175,7 +155,6 @@ function nuevoEstado(tutorial) {
     tutorial,
     tut: null,
     dif,
-    pausado: false,        // marcador fuera de cuadro
     pausaTutorial: false,
     vidas: dif.vidas,
     puntos: 0,
@@ -194,7 +173,7 @@ function nuevoEstado(tutorial) {
   };
 }
 
-const corriendo = () => estado?.fase === 'jugando' && !estado.pausado && !estado.pausaTutorial;
+const corriendo = () => estado?.fase === 'jugando' && !estado.pausaTutorial;
 const tutorialVisto = () => leer('diablo-tutorial') === '1';
 
 // ---------- utilidades ----------
@@ -226,23 +205,6 @@ function crearTexturaCamino() {
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(1, 3);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-
-function crearTexturaPasto() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const g = c.getContext('2d');
-  g.fillStyle = '#3d5a2a';
-  g.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 1400; i++) { // pasto, hojas secas y tierra
-    g.fillStyle = ['#4f7034', '#2f4721', '#6b5a32', '#587a3a'][i % 4];
-    g.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 3, 2 + Math.random() * 3);
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(4, 3);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
@@ -388,7 +350,6 @@ function prepararSalida(tutorial) {
   ui.aviso.classList.add('oculto');
   ui.opciones.forEach(b => (b.textContent = ''));
   actualizarHUD();
-  if (camaraDemo) colocarCamaraDemo();
   if (tutorial) entrarPaso(0);
   else {
     ui.correr.classList.remove('oculto');
@@ -399,7 +360,7 @@ function prepararSalida(tutorial) {
 // Al tocar ¡A correr!: se voltea, empieza a correr y la vista pasa detrás de él.
 function arrancar() {
   const e = estado;
-  if (!e || e.fase !== 'intro' || e.pausado) return;
+  if (!e || e.fase !== 'intro') return;
   if (e.tutorial && TUTORIAL[e.tut.i].espera !== 'arranque') return;
   e.fase = 'transicion';
   ui.correr.classList.add('oculto');
@@ -669,16 +630,7 @@ function saltar() {
   vibrar(15);
 }
 
-function pulsar(btn) {
-  btn.classList.add('pulsado');
-  setTimeout(() => btn.classList.remove('pulsado'), 120);
-}
-
-$('izq').addEventListener('pointerdown', e => { pulsar(e.currentTarget); moverA(estado.carril - 1); });
-$('der').addEventListener('pointerdown', e => { pulsar(e.currentTarget); moverA(estado.carril + 1); });
-$('saltar').addEventListener('pointerdown', e => { pulsar(e.currentTarget); saltar(); });
 ui.correr.addEventListener('click', arrancar);
-ui.opciones.forEach(b => b.addEventListener('pointerdown', () => { pulsar(b); moverA(Number(b.dataset.carril)); }));
 window.addEventListener('keydown', e => {
   if (!estado) return;
   if (e.key === 'ArrowLeft') moverA(estado.carril - 1);
@@ -686,20 +638,22 @@ window.addEventListener('keydown', e => {
   if (e.key === 'ArrowUp' || e.key === ' ') saltar();
 });
 
-// deslizar el dedo sobre la cámara: ← → cambia de carril, ↑ salta
+// Sin botones: se juega deslizando el dedo. ← → cambia de carril, ↑ salta.
+// Responde en cuanto el dedo recorre unos píxeles, sin esperar a soltarlo.
 let toque = null;
 window.addEventListener('pointerdown', e => {
   toque = e.target.closest('button, .pantalla, #tarjeta') ? null : { x: e.clientX, y: e.clientY };
 });
-window.addEventListener('pointerup', e => {
+window.addEventListener('pointermove', e => {
   if (!toque || !estado) return;
   const dx = e.clientX - toque.x;
   const dy = e.clientY - toque.y;
-  toque = null;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < 35) return;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) return;
+  toque = null; // un movimiento por deslizamiento
   if (Math.abs(dx) > Math.abs(dy)) moverA(estado.carril + Math.sign(dx));
   else if (dy < 0) saltar();
 });
+window.addEventListener('pointerup', () => (toque = null));
 
 // ---------- partículas ----------
 function confeti(colorExtra) {
@@ -739,12 +693,12 @@ const velocidadReal = e => e.velocidad * (e.turbo > 0 ? TURBO.factor : 1);
 
 function velocidadAnimacion(e) {
   if (e.fase !== 'jugando' && e.fase !== 'cerrando') return 1;
-  if (e.pausado) return 0;
   if (e.pausaTutorial) return 0.15; // cámara lenta mientras se explica
   return Math.min(2.5, velocidadReal(e) / VELOCIDAD_ANIMACION);
 }
 
 function actualizar(dt) {
+  if (despegue < 1) moverDespegue(dt);
   actualizarParticulas(dt);
   if (!estado) return;
   const e = estado;
@@ -779,8 +733,6 @@ function actualizar(dt) {
   if (!corriendo()) return;
   const v = velocidadReal(e);
   texCamino.offset.y += v * dt * 1.2;
-  piso.material.map.offset.y += v * dt * 1.15;
-  moverPaisaje(v * dt);
 
   for (const ent of e.entidades) {
     ent.z += v * dt;
@@ -815,7 +767,7 @@ function animarDiabloProcedural(t) {
   diablo.children.forEach(c => (c.position.y = c.userData.y0 + Math.abs(Math.sin(t * 12)) * 0.015));
 }
 
-// ---------- menú: dificultad y colocación ----------
+// ---------- menú: dificultad ----------
 for (const input of document.querySelectorAll('.selector input')) {
   input.checked = ajustes[input.name] === input.value;
   input.addEventListener('change', () => {
@@ -833,27 +785,23 @@ function abrirMenu() {
 
 // ---------- arranque ----------
 anchor.onTargetFound = () => {
-  marcadorVisible = true;
+  if (libre) return;
+  libre = true;
   ui.escaneo.classList.add('oculto');
-  if (!estado && ui.inicio.classList.contains('oculto')) prepararSalida(quiereTutorial);
-  else if (estado?.pausado) estado.pausado = false;
-};
-anchor.onTargetLost = () => {
-  marcadorVisible = false;
-  ui.escaneo.classList.remove('oculto');
-  if (estado) estado.pausado = true; // pausa hasta volver a ver el marcador
+  liberarMundo(camaraDemo ?? camera);
+  if (!camaraDemo) mindar.pause?.(true); // ya no se rastrea: sigue la cámara y ahorra batería
+  prepararSalida(quiereTutorial);
 };
 
 async function empezar(tutorial) {
   initAudio();
   sfx('click');
-  aplicarColocacion();
   ui.inicio.classList.add('oculto');
   quiereTutorial = tutorial;
   limpiarEntidades();
   estado = null;
   if (arrancado) { // la cámara ya está abierta
-    if (marcadorVisible) prepararSalida(tutorial);
+    if (libre) prepararSalida(tutorial);
     else ui.escaneo.classList.remove('oculto');
     return;
   }
@@ -863,8 +811,6 @@ async function empezar(tutorial) {
   diablo = modelos.diablo.objeto;
   diablo.children.forEach(c => (c.userData.y0 = c.position.y));
   contenido.add(diablo);
-  sembrarPaisaje();
-  moverPaisaje(0);
   if (modelos.diablo.clips.length) {
     mixer = new THREE.AnimationMixer(diablo);
     const clips = modelos.diablo.clips;
@@ -883,30 +829,16 @@ async function empezar(tutorial) {
     return;
   }
   renderer.setAnimationLoop(() => {
-    const dt = Math.min(reloj.getDelta(), 0.05);
-    if (marcadorVisible) ajustarEscala(dt);
-    actualizar(dt);
+    actualizar(Math.min(reloj.getDelta(), 0.05));
     renderer.render(scene, camera);
   });
-}
-
-// La cámara de MindAR está en el origen: la distancia al marcador es la
-// posición del ancla; al dividir entre su escala queda en anchos de marcador.
-const posAncla = new THREE.Vector3();
-const escAncla = new THREE.Vector3();
-function ajustarEscala(dt) {
-  const m = anchor.group.matrixWorld;
-  const d = posAncla.setFromMatrixPosition(m).length() / escAncla.setFromMatrixScale(m).x;
-  const meta = THREE.MathUtils.clamp(d / DISTANCIA_REF, 1, ESCALA_MAX);
-  mundo.scale.setScalar(mundo.scale.x + (meta - mundo.scale.x) * Math.min(1, dt * 3));
 }
 
 $('jugar').addEventListener('click', () => empezar(!tutorialVisto()));
 $('tutorial').addEventListener('click', () => empezar(true));
 $('otra').addEventListener('click', () => {
   sfx('click');
-  if (marcadorVisible) prepararSalida(false);
-  else { ui.final.classList.add('oculto'); limpiarEntidades(); estado = null; quiereTutorial = false; ui.escaneo.classList.remove('oculto'); }
+  prepararSalida(false);
 });
 $('menu').addEventListener('click', () => {
   sfx('click');
@@ -918,21 +850,10 @@ $('menu').addEventListener('click', () => {
 
 // Modo demo (?demo): sin cámara, con el marcador dibujado en pantalla.
 // Sirve para probar en la computadora y tomar capturas.
-function colocarCamaraDemo() {
-  if (ajustes.colocacion === 'pared') { // de pie frente al muro
-    camaraDemo.up.set(0, 1, 0);
-    camaraDemo.position.set(0, 0.15, 3.0);
-    camaraDemo.lookAt(0, -0.3, 0);
-  } else { // mirando la mesa desde el borde inferior del marcador
-    camaraDemo.up.set(0, 0, 1);
-    camaraDemo.position.set(0, -1.25, 1.1);
-    camaraDemo.lookAt(0, -0.1, 0);
-  }
-}
-
 function iniciarDemo() {
   camaraDemo = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.01, 20);
-  colocarCamaraDemo();
+  camaraDemo.position.set(0, -1.6, 1.6); // mirando el marcador sobre la mesa
+  camaraDemo.lookAt(0, 0, 0);
   const tex = new THREE.TextureLoader().load('marcador/marcador.png');
   tex.colorSpace = THREE.SRGBColorSpace;
   // sin depthWrite: como en la cámara real, el papel no tapa lo que está "detrás" del muro

@@ -9,18 +9,6 @@ function cargarGLB(url) {
   return new Promise(resolve => loader.load(url, resolve, undefined, () => resolve(null)));
 }
 
-// El follaje viene como transparencia mezclada: con recorte (alphaTest) se ordena bien.
-function follaje(escena) {
-  escena.traverse(o => {
-    if (o.material?.transparent) {
-      o.material.transparent = false;
-      o.material.alphaTest = 0.5;
-      o.material.side = THREE.DoubleSide;
-    }
-  });
-  return escena;
-}
-
 // Escala el modelo para que mida `alto` y lo apoya sobre el suelo (y = 0).
 function normalizar(obj, alto) {
   obj.updateMatrixWorld(true); // con los huesos en su lugar, la caja de un personaje con rig sale bien
@@ -107,14 +95,11 @@ function vallaProcedural() {
 }
 
 export async function cargarModelos() {
-  const [diablo, maguey, takis, mezcal, pino, abedul, roca] = await Promise.all([
+  const [diablo, maguey, takis, mezcal] = await Promise.all([
     cargarGLB('assets/models/diablo.glb'),
     cargarGLB('assets/models/maguey.glb'),
     cargarGLB('assets/models/takis.glb'),
     cargarGLB('assets/models/mezcal.glb'),
-    cargarGLB('assets/models/bosque_pino.glb'),
-    cargarGLB('assets/models/bosque_abedul.glb'),
-    cargarGLB('assets/models/bosque_roca.glb'),
   ]);
   return {
     diablo: diablo
@@ -125,7 +110,5 @@ export async function cargarModelos() {
     takis: takis ? normalizar(takis.scene, 0.12) : takisProcedural(), // grandes para que se vean
     mezcal: mezcal ? normalizar(mezcal.scene, 0.08) : mezcalProcedural(),
     valla: vallaProcedural(),
-    // árboles y rocas de la Sierra Norte que pasan a los lados del camino
-    paisaje: [[pino, 0.9], [abedul, 0.7], [roca, 0.1]].filter(([g]) => g).map(([g, alto]) => normalizar(follaje(g.scene), alto)),
   };
 }
