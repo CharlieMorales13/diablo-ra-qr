@@ -9,7 +9,8 @@ const CARRILES = [-0.22, 0, 0.22];
 const Z_DIABLO = 0.3;       // donde corre el Diablo (lado cercano del marcador)
 const Z_APARECE = -1.7;     // horizonte: más lejos de esto los objetos no se ven
 const Z_SALIDA = 0.65;
-const TOTAL_PUERTAS = 12;
+const TOTAL_PUERTAS = 8;
+const DISTANCIA_PREGUNTA = 0.6; // el Diablo se detiene cuando la puerta está a esta distancia
 const SALTO = { alto: 0.13, duracion: 0.62 };
 const TURBO = { duracion: 4, factor: 1.6, puntos: 50 }; // botella de mezcal
 const PROB_MEZCAL = 0.3; // por tramo
@@ -17,7 +18,7 @@ const ESCALA_INTRO = 1.6;   // de frente y de cerca antes de arrancar
 // El marcador solo inicia el juego: al verlo, el camino sale del papel y se
 // queda fijo frente a la cámara. Así se juega aunque el marcador salga de cuadro.
 // Posición de la cámara respecto al camino, en anchos de marcador.
-const VISTA = { altura: 1.1, atras: 1.25, mira: 0.1 }; // ponytail: encuadre fijo, se ajusta aquí
+const VISTA = { altura: 0.6, atras: 1.25, mira: -0.3 }; // ponytail: encuadre fijo, se ajusta aquí
 const DESPEGUE = 0.9; // segundos que tarda el camino en salir del marcador
 const VELOCIDAD_ANIMACION = 0.32; // velocidad a la que la animación de correr se ve natural
 const DIFICULTADES = {
@@ -46,7 +47,7 @@ const TUTORIAL = [
   { texto: 'La <b>cerca de carrizo</b> tapa los tres carriles: solo se puede saltar.', crear: { tipo: 'valla' }, cuando: 0.11, espera: 'salto' },
   { texto: 'Llega una <b>puerta</b>. Arriba está la pista y abajo las 3 opciones: dos son ciertas y una es el <b>intruso</b>.', crear: { tipo: 'puerta' }, cuando: 'visible', boton: 'Entendido' },
   { texto: 'Cruza por el intruso: desliza el dedo hasta su carril.', mismo: true, cuando: 0.5, espera: 'carril', carril: 'intruso' },
-  { texto: '¡Muy bien! Cada acierto suma 100 puntos, sube el combo y acelera al Diablo. Ahora elige tu dificultad.', boton: 'Elegir dificultad', fin: true },
+  { texto: '¡Muy bien! En el juego el Diablo se detiene frente a cada puerta para que pienses: desliza a tu carril y toca <b>¡A correr!</b> o desliza ↑. Cada acierto suma 100 puntos y sube el combo. Ahora elige tu dificultad.', boton: 'Elegir dificultad', fin: true },
 ];
 
 // ---------- ajustes guardados ----------
@@ -153,6 +154,8 @@ function armarCamino(modelo) {
     contenido.add(tramo);
     tramos.push(tramo);
   }
+  const aniso = renderer.capabilities.getMaxAnisotropy(); // nítido aunque se vea de lado
+  modelo.traverse(o => { if (o.material?.map) o.material.map.anisotropy = aniso; });
   camino.visible = false;
 }
 
@@ -185,6 +188,7 @@ function nuevoEstado(tutorial) {
     tut: null,
     dif,
     pausaTutorial: false,
+    pregunta: false,       // detenido frente a una puerta
     vidas: dif.vidas,
     puntos: 0,
     combo: 1,
@@ -202,7 +206,7 @@ function nuevoEstado(tutorial) {
   };
 }
 
-const corriendo = () => estado?.fase === 'jugando' && !estado.pausaTutorial;
+const corriendo = () => estado?.fase === 'jugando' && !estado.pausaTutorial && !estado.pregunta;
 const tutorialVisto = () => leer('diablo-tutorial') === '1';
 
 // ---------- utilidades ----------
@@ -234,6 +238,23 @@ function crearTexturaCamino() {
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(1, 3);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function crearTexturaPasto() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#4a7a2c';
+  g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) { // briznas de varios verdes
+    g.fillStyle = ['#5e9236', '#3b6623', '#6fa443', '#55852f'][i % 4];
+    g.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 3 + Math.random() * 5);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(10, 10);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
@@ -367,6 +388,7 @@ function limpiarEntidades() {
 // El Diablo espera de frente, en primer plano, con su animación de alerta.
 function prepararSalida(tutorial) {
   limpiarEntidades();
+  contenido.add(diablo); // regresa del fondo del menú
   estado = nuevoEstado(tutorial);
   diablo.position.set(CARRILES[1], 0, Z_DIABLO);
   diablo.rotation.set(0, 0, 0);
@@ -427,7 +449,7 @@ function terminar() {
   }
   ui.hud.classList.add('oculto');
   const a = e.aciertos;
-  const rango = a >= 10 ? 'Oaxaqueño de corazón' : a >= 7 ? 'Paisano' : a >= 4 ? 'Fuereño curioso' : 'Turista';
+  const rango = a >= 7 ? 'Oaxaqueño de corazón' : a >= 5 ? 'Paisano' : a >= 3 ? 'Fuereño curioso' : 'Turista';
   const clave = `diablo-record-${ajustes.dificultad}`;
   const record = Math.max(e.puntos, Number(leer(clave)) || 0);
   guardar(clave, record);
@@ -519,6 +541,31 @@ function mostrarPregunta(p) {
   ui.pista.textContent = p.pregunta.pista;
   ui.pista.classList.remove('oculto');
   ui.opciones.forEach((b, i) => (b.textContent = p.opciones[i]));
+}
+
+// Frente a cada puerta el Diablo se detiene en alerta: hay tiempo de leer y
+// elegir carril. Sigue con ¡A correr! o deslizando hacia arriba.
+function detenerEnPregunta(p) {
+  const e = estado;
+  e.pregunta = true;
+  e.salto = 0;
+  mostrarPregunta(p);
+  const nota = document.createElement('small');
+  nota.textContent = 'Desliza al carril del intruso y toca ¡A correr! o desliza ↑';
+  ui.pista.append(document.createElement('br'), nota);
+  clearTimeout(avisoTimer);
+  ui.aviso.classList.add('oculto'); // nada tapa la pregunta
+  ui.correr.classList.remove('oculto');
+  animacion('alerta');
+}
+
+function seguir() {
+  const e = estado;
+  if (!e?.pregunta) return;
+  e.pregunta = false;
+  ui.correr.classList.add('oculto');
+  animacion('correr');
+  sfx('click');
 }
 
 let avisoTimer = null;
@@ -635,7 +682,7 @@ ui.tarjetaBoton.addEventListener('click', () => {
 
 // ---------- controles táctiles ----------
 function puedeMoverse() {
-  return corriendo() || (estado?.pausaTutorial && TUTORIAL[estado.tut.i].espera === 'carril');
+  return corriendo() || estado?.pregunta || (estado?.pausaTutorial && TUTORIAL[estado.tut.i].espera === 'carril');
 }
 
 function moverA(carril) {
@@ -659,12 +706,12 @@ function saltar() {
   vibrar(15);
 }
 
-ui.correr.addEventListener('click', arrancar);
+ui.correr.addEventListener('click', () => (estado?.pregunta ? seguir() : arrancar()));
 window.addEventListener('keydown', e => {
   if (!estado) return;
   if (e.key === 'ArrowLeft') moverA(estado.carril - 1);
   if (e.key === 'ArrowRight') moverA(estado.carril + 1);
-  if (e.key === 'ArrowUp' || e.key === ' ') saltar();
+  if (e.key === 'ArrowUp' || e.key === ' ') (estado.pregunta ? seguir() : saltar());
 });
 
 // Sin botones: se juega deslizando el dedo. ← → cambia de carril, ↑ salta.
@@ -680,7 +727,7 @@ window.addEventListener('pointermove', e => {
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) return;
   toque = null; // un movimiento por deslizamiento
   if (Math.abs(dx) > Math.abs(dy)) moverA(estado.carril + Math.sign(dx));
-  else if (dy < 0) saltar();
+  else if (dy < 0) (estado.pregunta ? seguir() : saltar());
 });
 window.addEventListener('pointerup', () => (toque = null));
 
@@ -721,6 +768,7 @@ function actualizarParticulas(dt) {
 const velocidadReal = e => e.velocidad * (e.turbo > 0 ? TURBO.factor : 1);
 
 function velocidadAnimacion(e) {
+  if (e.pregunta) return 1; // alerta a velocidad normal
   if (e.fase !== 'jugando' && e.fase !== 'cerrando') return 1;
   if (e.pausaTutorial) return 0.15; // cámara lenta mientras se explica
   return Math.min(2.5, velocidadReal(e) / VELOCIDAD_ANIMACION);
@@ -772,6 +820,10 @@ function actualizar(dt) {
       ent.vista = true;
       if (!e.tutorial) programarTramo(ent.z - 0.5); // el siguiente tramo empieza detrás de esta puerta
     }
+    if (ent.tipo === 'puerta' && !e.tutorial && !ent.preguntada && ent.z >= Z_DIABLO - DISTANCIA_PREGUNTA) {
+      ent.preguntada = true;
+      detenerEnPregunta(ent);
+    }
     if (!ent.resuelta && ent.z >= Z_DIABLO) {
       ent.resuelta = true;
       if (ent.tipo === 'puerta') resolverPuerta(ent);
@@ -779,8 +831,8 @@ function actualizar(dt) {
       if (e.tutorial && ent === e.tut.ent && e.tut.listo) programarTutorial(0.9, siguientePaso);
     }
   }
-  // la pregunta en pantalla es la de la puerta más cercana que ya se ve
-  if (!e.puertaActual) {
+  // en el tutorial la pregunta sale en cuanto se ve la puerta
+  if (e.tutorial && !e.puertaActual) {
     const p = e.entidades.find(x => x.tipo === 'puerta' && !x.resuelta && x.vista);
     if (p) mostrarPregunta(p);
   }
@@ -810,8 +862,79 @@ for (const input of document.querySelectorAll('.selector input')) {
 function abrirMenu() {
   ui.final.classList.add('oculto');
   ui.inicio.classList.remove('oculto');
+  fondo.mostrar();
   $('jugar').textContent = 'Jugar';
 }
+
+// ---------- fondo del menú: el Diablo en alerta, de frente, sobre pasto ----------
+const fondo = (() => {
+  const canvas = $('fondo');
+  const r = new THREE.WebGLRenderer({ canvas, antialias: true });
+  r.outputColorSpace = THREE.SRGBColorSpace;
+  r.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const escena = new THREE.Scene();
+  escena.background = new THREE.Color(0x9fcbe8);
+  escena.fog = new THREE.Fog(0x9fcbe8, 1.5, 4);
+  escena.add(new THREE.HemisphereLight(0xffffff, 0x557733, 1.6));
+  const luz = new THREE.DirectionalLight(0xffffff, 1.4);
+  luz.position.set(0.5, 1, 1);
+  escena.add(luz);
+  const pasto = new THREE.Mesh(new THREE.CircleGeometry(4, 48), new THREE.MeshStandardMaterial({ map: crearTexturaPasto() }));
+  pasto.rotation.x = -Math.PI / 2;
+  escena.add(pasto);
+  // ponytail: encuadre fijo; el Diablo queda entre el título y el panel de opciones
+  const cam = new THREE.PerspectiveCamera(40, 1, 0.05, 10);
+  cam.position.set(0, 0.1, 1);
+  cam.lookAt(0, 0.033, 0);
+  const relojFondo = new THREE.Clock();
+  function ajustar() {
+    r.setSize(innerWidth, innerHeight, false);
+    cam.aspect = innerWidth / innerHeight;
+    cam.updateProjectionMatrix();
+  }
+  addEventListener('resize', ajustar);
+  ajustar();
+  return {
+    mostrar() {
+      canvas.classList.remove('oculto');
+      if (diablo) {
+        escena.add(diablo);
+        diablo.position.set(0, 0, 0);
+        diablo.rotation.set(0, 0, 0);
+        diablo.scale.setScalar(1);
+        animacion(acciones.alerta ? 'alerta' : 'correr');
+      }
+      r.setAnimationLoop(() => {
+        const dt = relojFondo.getDelta();
+        if (!estado) mixer?.update(dt);
+        r.render(escena, cam);
+      });
+    },
+    ocultar() {
+      canvas.classList.add('oculto');
+      r.setAnimationLoop(null);
+    },
+  };
+})();
+
+// Los modelos se cargan desde que abre la página: el menú ya muestra al Diablo.
+const cargando = cargarModelos().then(m => {
+  modelos = m;
+  diablo = modelos.diablo.objeto;
+  diablo.children.forEach(c => (c.userData.y0 = c.position.y));
+  if (modelos.camino) armarCamino(modelos.camino);
+  if (modelos.diablo.clips.length) {
+    mixer = new THREE.AnimationMixer(diablo);
+    const clips = modelos.diablo.clips;
+    acciones.correr = mixer.clipAction(clips.find(c => /sprint|run|corr/i.test(c.name)) || clips[0]);
+    const alerta = clips.find(c => /alert/i.test(c.name));
+    if (alerta) acciones.alerta = mixer.clipAction(alerta);
+    const baile = clips.find(c => /dance|baile/i.test(c.name));
+    if (baile) acciones.bailar = mixer.clipAction(baile);
+  }
+  if (!ui.inicio.classList.contains('oculto')) fondo.mostrar();
+});
+fondo.mostrar();
 
 // ---------- arranque ----------
 anchor.onTargetFound = () => {
@@ -827,6 +950,7 @@ async function empezar(tutorial) {
   initAudio();
   sfx('click');
   ui.inicio.classList.add('oculto');
+  fondo.ocultar();
   quiereTutorial = tutorial;
   limpiarEntidades();
   estado = null;
@@ -837,20 +961,7 @@ async function empezar(tutorial) {
   }
   arrancado = true;
   ui.escaneo.classList.remove('oculto');
-  modelos = await cargarModelos();
-  diablo = modelos.diablo.objeto;
-  diablo.children.forEach(c => (c.userData.y0 = c.position.y));
-  contenido.add(diablo);
-  if (modelos.camino) armarCamino(modelos.camino);
-  if (modelos.diablo.clips.length) {
-    mixer = new THREE.AnimationMixer(diablo);
-    const clips = modelos.diablo.clips;
-    acciones.correr = mixer.clipAction(clips.find(c => /sprint|run|corr/i.test(c.name)) || clips[0]);
-    const alerta = clips.find(c => /alert/i.test(c.name));
-    if (alerta) acciones.alerta = mixer.clipAction(alerta);
-    const baile = clips.find(c => /dance|baile/i.test(c.name));
-    if (baile) acciones.bailar = mixer.clipAction(baile);
-  }
+  await cargando;
   if (DEMO) return iniciarDemo();
   try {
     await mindar.start();

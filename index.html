@@ -23,7 +23,7 @@
   <div id="hud" class="oculto">
     <div class="barra">
       <span id="vidas">❤❤❤</span>
-      <span id="puerta">Puerta 0/12</span>
+      <span id="puerta">Puerta 0/8</span>
       <span id="puntos">0</span>
     </div>
     <div class="recorrido" aria-label="Avance hacia la Guelaguetza">
@@ -54,27 +54,36 @@
   <div id="cuenta" class="oculto"></div>
 
   <!-- Pantalla de inicio -->
+  <!-- Menú: el Diablo en alerta sobre pasto de fondo -->
+  <canvas id="fondo" class="oculto"></canvas>
   <section id="inicio" class="pantalla">
-    <h1>ATRAPA AL <em>INTRUSO</em></h1>
-    <p class="sub">El Diablo de Juxtlahuaca se quedó dormido en la Sierra Norte de Juárez y sus compañeros se fueron en los camiones a la Guelaguetza. ¡Baja corriendo al Valle de Oaxaca y demuestra cuánto sabes de tu tierra!</p>
-    <ol class="reglas">
-      <li>En cada una de las 12 puertas hay 3 letreros: <b>2 son ciertos y 1 es el intruso</b>. Cruza por el intruso.</li>
-      <li>No hay botones: <b>desliza el dedo</b> ← → para cambiar de carril y ↑ para brincar.</li>
-      <li>Takis +25 · agave −30 · las cercas de carrizo solo se saltan. Fallar una puerta o chocar con una cerca cuesta un ❤.</li>
-      <li><b>Mezcal:</b> +50 y turbo: unos segundos más rápido y atravesando todo.</li>
-      <li>Cada acierto suma 100 (combo x2, x3) y el Diablo corre más rápido.</li>
-    </ol>
-    <fieldset class="selector">
-      <legend>Dificultad</legend>
-      <label><input type="radio" name="dificultad" value="media"><span>Media</span></label>
-      <label><input type="radio" name="dificultad" value="dificil"><span>Difícil</span></label>
-      <label><input type="radio" name="dificultad" value="muy-dificil"><span>Muy difícil</span></label>
-    </fieldset>
-    <div class="botones">
-      <button id="jugar" class="btn">Jugar</button>
-      <button id="tutorial" class="btn btn-secundario">Tutorial</button>
+    <div class="cabeza">
+      <h1>ATRAPA AL <em>INTRUSO</em></h1>
+      <p class="sub">El Diablo de Juxtlahuaca se quedó dormido en la Sierra Norte de Juárez y sus compañeros se fueron en los camiones a la Guelaguetza. ¡Baja corriendo al Valle de Oaxaca y demuestra cuánto sabes de tu tierra!</p>
     </div>
-    <p class="nota">Apunta la cámara al marcador impreso para empezar; después juegas sin él. La primera vez empieza un tutorial corto.</p>
+    <div class="panel">
+      <fieldset class="selector">
+        <legend>Dificultad</legend>
+        <label><input type="radio" name="dificultad" value="media"><span>Media</span></label>
+        <label><input type="radio" name="dificultad" value="dificil"><span>Difícil</span></label>
+        <label><input type="radio" name="dificultad" value="muy-dificil"><span>Muy difícil</span></label>
+      </fieldset>
+      <div class="botones">
+        <button id="jugar" class="btn">Jugar</button>
+        <button id="tutorial" class="btn btn-secundario">Tutorial</button>
+      </div>
+      <details class="como">
+        <summary>Cómo se juega</summary>
+        <ol class="reglas">
+          <li>En cada una de las 8 puertas hay 3 letreros: <b>2 son ciertos y 1 es el intruso</b>. El Diablo se detiene frente a la puerta: desliza al carril del intruso y sigue con <b>¡A correr!</b></li>
+          <li>No hay botones: <b>desliza el dedo</b> ← → para cambiar de carril y ↑ para brincar.</li>
+          <li>Takis +25 · agave −30 · las cercas de carrizo solo se saltan. Fallar una puerta o chocar con una cerca cuesta un ❤.</li>
+          <li><b>Mezcal:</b> +50 y turbo: unos segundos más rápido y atravesando todo.</li>
+          <li>Cada acierto suma 100 (combo x2, x3) y el Diablo corre más rápido.</li>
+        </ol>
+      </details>
+      <p class="nota">Apunta la cámara al marcador impreso para empezar; después juegas sin él. La primera vez empieza un tutorial corto.</p>
+    </div>
   </section>
 
   <!-- Pantalla final -->

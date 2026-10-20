@@ -18,7 +18,7 @@ El marcador puede estar en una mesa o en la pared. En cuanto MindAR lo reconoce,
 
 | | |
 |---|---|
-| **Objetivo** | Atrapar al intruso en las 12 puertas, corriendo a toda velocidad como en un *endless runner*. Cuando asoma una puerta, el camino hasta ella queda despejado para que solo pienses en la respuesta. |
+| **Objetivo** | Atrapar al intruso en las 8 puertas, corriendo a toda velocidad como en un *endless runner*. Frente a cada puerta el Diablo se detiene en alerta y la pregunta queda sola en pantalla: eliges carril con calma y sigues con **¡A correr!** o deslizando ↑. El camino hasta la puerta va despejado. |
 | **Inicio** | El Diablo espera de frente, en primer plano, con su animación de alerta. Al tocar **¡A correr!** se voltea, arranca y la vista pasa detrás de él (tercera persona). |
 | **Controles** | Sin botones, como en los *runners* del teléfono: desliza el dedo ← → para cambiar de carril y ↑ para saltar. Responde en cuanto el dedo se mueve, sin esperar a soltarlo. En PC: flechas y espacio. |
 | **Obstáculos** | Agaves en un carril (esquívalos o sáltalos: −30 si chocas) y cercas de carrizo que tapan los 3 carriles (solo se saltan: chocar cuesta un ❤). |
@@ -27,7 +27,7 @@ El marcador puede estar en una mesa o en la pared. En cuanto MindAR lo reconoce,
 | **Dificultad** | **Media**, **Difícil** y **Muy difícil**: cambian la velocidad inicial (0.32, 0.42 y 0.54 marcadores por segundo), la aceleración, los obstáculos por tramo (2, 3 y 4), qué tan seguido sale la cerca y las vidas (3, 3 y 2). Hay récord por dificultad. |
 | **Tutorial** | La primera vez se juega un tutorial de 8 pasos que pausa la acción y explica cada cosa: Takis, agave, salto, cerca y cómo cruzar por el intruso. Se puede repetir con el botón **Tutorial**. |
 | **Vidas** | Cada intruso que se escapa o cada cerca que no saltas cuesta un ❤. |
-| **Fin** | Al cruzar las 12 puertas o al perder las 3 vidas. El Diablo voltea hacia ti y baila, y se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
+| **Fin** | Al cruzar las 8 puertas o al perder las 3 vidas. El Diablo voltea hacia ti y baila, y se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
 | **Retroalimentación** | Cada cambio de carril suena y vibra. Un acierto lanza confeti, un acorde y una vibración corta. Un error hace un destello rojo, un zumbido y una vibración doble. Con turbo, la pantalla se enciende con un borde de fuego. |
 
 El banco tiene **41 preguntas para oaxaqueños**: regiones, los 7 moles, magueyes silvestres, días de plaza, pueblos artesanos, Monte Albán, Guelaguetza, calendas, el carnaval putleco y más. En cada partida salen 12 al azar y, después de cada puerta, aparece un dato curioso.
@@ -104,7 +104,7 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 | `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo las animaciones `Alert` (de frente al inicio), `Running` (al correr) y `All_Night_Dance` (pantalla final). De 18 MB a 1.7 MB. | 1.7 MB |
 | `maguey.glb` | [Agave Americana](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6), escaneo de Discobolo | De 1 M triángulos y 48 MB a 16 k. Se le quita el cuadro de tierra del escaneo por color de textura (café contra verde) y altura. | 582 KB |
 | `mezcal.glb` | [Malaespina Mezcal bottle](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) de santibanezjuan | Malla a 4 k triángulos y texturas de 512 px | 305 KB |
-| `camino.glb` | [gravel road](https://sketchfab.com/3d-models/gravel-road-5c29774fd35f4c85a531d6abd7ceef34) de SPLEEN VISION | Escaneo de 158 k caras reducido a 5 k con la textura de 1024 px. En el juego se usan 3 tramos que se reciclan al pasar, aplanados para que el Diablo no se hunda en los baches. | 1.7 MB |
+| `camino.glb` | [gravel road](https://sketchfab.com/3d-models/gravel-road-5c29774fd35f4c85a531d6abd7ceef34) de SPLEEN VISION | Escaneo de 158 k caras reducido a 12 k con la textura de 1024 px y filtrado anisotrópico para que se vea nítido en ángulo. En el juego se usan 3 tramos que se reciclan al pasar, aplanados para que el Diablo no se hunda en los baches. | 2.4 MB |
 | `takis.glb` | [Takis Fuego - México](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) de Luiss Maker | Malla a 5 k triángulos y texturas de 512 px | 176 KB |
 
 Para regenerarlos, con el GLB de Meshy y los GLB de Sketchfab descargados en una carpeta:

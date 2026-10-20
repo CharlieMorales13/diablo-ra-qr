@@ -190,3 +190,14 @@ body.turbo #puntos { color: var(--amarillo); }
 .recorrido div { flex: 1; height: 8px; background: rgba(255, 255, 255, .3); border-radius: 4px; overflow: hidden; }
 .recorrido i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--verde), var(--amarillo), var(--naranja)); transition: width .4s; }
 .llegada { margin: 0 0 6px; font-weight: 800; color: var(--naranja); }
+
+/* menú: el Diablo en alerta de fondo, título arriba y opciones abajo */
+#fondo { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 19; }
+#inicio { background: transparent; border: 0; justify-content: space-between; padding: 20px 16px calc(16px + env(safe-area-inset-bottom)); }
+#inicio .cabeza { color: var(--blanco); text-shadow: 0 2px 8px rgba(0, 0, 0, .7); }
+#inicio .sub { font-size: .92rem; font-weight: 600; }
+#inicio .panel { background: var(--blanco); color: var(--negro); padding: 14px; border-left: 8px solid var(--naranja); box-shadow: 0 6px 24px rgba(0, 0, 0, .4); }
+.como { margin: 12px 0 4px; }
+.como summary { font-weight: 800; cursor: pointer; }
+.como .reglas { margin: 8px 0 0; font-size: .88rem; }
+#pista small { font-size: .78rem; font-weight: 600; opacity: .75; }

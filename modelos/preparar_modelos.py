@@ -154,4 +154,4 @@ reducir_sketchfab("takis_fuego_-_mexico.glb", 5000, "takis.glb")
 
 # ---------------------------------------------------------------- camino de grava (piso)
 # Llena toda la pantalla: conserva la textura de 1024 px.
-reducir_sketchfab("gravel_road.glb", 5000, "camino.glb", px=1024, unir=True)
+reducir_sketchfab("gravel_road.glb", 12000, "camino.glb", px=1024, unir=True)
