@@ -354,19 +354,19 @@ function programarTramo(zInicio) {
   const e = estado;
   const indice = e.puertasCruzadas + e.entidades.filter(x => x.tipo === 'puerta' && !x.resuelta).length;
   if (indice >= TOTAL_PUERTAS) return;
+  // agaves, cerca y mezcal en orden, carril y separación al azar
+  const eventos = Array(e.dif.obstaculos).fill('maguey');
+  if (Math.random() < e.dif.valla) eventos.push('valla');
+  if (Math.random() < PROB_MEZCAL) eventos.push('mezcal');
   let z = zInicio;
-  for (let i = 0; i < e.dif.obstaculos; i++) {
-    agregar(crearObjeto('maguey', z));
-    if (Math.random() < 0.6) agregar(crearObjeto('takis', z - 0.2));
-    z -= 0.4;
-  }
-  if (Math.random() < e.dif.valla) {
-    agregar(crearObjeto('valla', z));
-    z -= 0.4;
-  }
-  if (Math.random() < PROB_MEZCAL) {
-    agregar(crearObjeto('mezcal', z + 0.15));
-    z -= 0.15;
+  for (const tipo of barajar(eventos)) {
+    const carril = Math.floor(Math.random() * 3);
+    agregar(crearObjeto(tipo, z, carril));
+    // los Takis van en otro carril, nunca encimados sobre el agave
+    if (tipo === 'maguey' && Math.random() < 0.6) {
+      agregar(crearObjeto('takis', z - Math.random() * 0.12, (carril + 1 + Math.floor(Math.random() * 2)) % 3));
+    }
+    z -= 0.3 + Math.random() * 0.3;
   }
   agregar(crearPuerta(e.bolsa[indice], z - DESPEJE, indice === TOTAL_PUERTAS - 1));
 }

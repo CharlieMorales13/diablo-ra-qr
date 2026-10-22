@@ -36,7 +36,7 @@ Hay **18 preguntas de cultura general** para la dificultad media y **41 pregunta
 
 - [MindAR](https://github.com/hiukim/mind-ar-js) 1.2.5: rastreo de imagen en el navegador.
 - [three.js](https://threejs.org/) 0.160: render 3D y carga de GLB.
-- Web Audio API: efectos sintetizados en código. La música de fondo se toca desde `assets/audio/musica.mp3`.
+- Web Audio API: efectos sintetizados en código. La música de fondo (*Son Calenda*) se toca desde `assets/audio/musica.mp3`.
 - Vibration API: retroalimentación háptica en Android.
 - Python + Pillow + qrcode + OpenCV: generación y análisis del marcador.
 - Meshy AI: modelo del Diablo con rig y animaciones.
@@ -133,6 +133,7 @@ En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, 
 | Camino de grava (*gravel road*) | [SPLEEN VISION · Sketchfab](https://sketchfab.com/3d-models/gravel-road-5c29774fd35f4c85a531d6abd7ceef34) | CC BY 4.0 |
 | Bolsa de Takis (*Takis Fuego - México*) | [Luiss Maker · Sketchfab](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) | CC BY 4.0 |
 | Efectos de sonido | Sintetizados en código (`js/audio.js`), autoría propia | MIT |
+| Música: *Son Calenda*, son tradicional del Istmo de Tehuantepec | Interpretación del Súper Grupo Juárez ([video en YouTube, canal sangreazteca1](https://www.youtube.com/results?search_query=Son+Calenda+S%C3%BAper+Grupo+Juarez)) | Todos los derechos reservados; se usa con crédito y fines educativos, sin fines de lucro |
 | MindAR | HiuKim Yuen | MIT |
 | three.js | three.js authors | MIT |
 | Tipografías del marcador | Inter (Rasmus Andersson), DejaVu Sans Mono | SIL OFL 1.1 / licencia Bitstream Vera |
