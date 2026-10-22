@@ -10,6 +10,8 @@ CC BY 4.0) con su rig automático y animaciones ("Running", "Alert", ...).
     malaespina_mezcal_bottle.glb  "Malaespina Mezcal bottle" de santibanezjuan
     takis_fuego_-_mexico.glb      "Takis Fuego - México" de Luiss Maker
     gravel_road.glb               "gravel road" de SPLEEN VISION
+    wooden_fence_-19mb.glb        "Wooden fence -19MB" de adventurer
+    papel_picado_del_dia_de_muertos.glb "Papel Picado del Dia de muertos" de Sandra.Arandano
 
 Genera en assets/models/ (texturas incrustadas):
     diablo.glb    el diablo reducido de ~211 k a ~20 k triángulos, texturas de
@@ -20,6 +22,8 @@ Genera en assets/models/ (texturas incrustadas):
     mezcal.glb    botella de mezcal reducida (turbo del Diablo).
     takis.glb     bolsa de Takis Fuego reducida (premio de +25).
     camino.glb    tramo de camino de grava escaneado: el piso por el que corre.
+    valla.glb     tramo de cerca de varas tejidas (la cerca que se salta).
+    papel_picado.glb  tres banderitas de papel picado para las puertas.
 """
 import os
 import sys
@@ -42,12 +46,13 @@ def importar(ruta):
     bpy.ops.import_scene.gltf(filepath=ruta)
 
 
-def exportar(nombre, animaciones=False):
+def exportar(nombre, animaciones=False, formato="JPEG"):
+    # formato="AUTO" conserva PNG con transparencia (papel picado)
     bpy.ops.export_scene.gltf(
         filepath=os.path.join(SALIDA, nombre),
         export_format="GLB",
         export_animations=animaciones,
-        export_image_format="JPEG",
+        export_image_format=formato,
         export_jpeg_quality=85,
         export_yup=True,
     )
@@ -110,7 +115,28 @@ def quitar_suelo(obj):
     print("suelo: caras quitadas", len(borrar), "sueltas", len(sueltas))
 
 
-def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512, unir=False):
+def centrar(obj):
+    """Origen al centro de la base: el juego los acomoda sin más ajustes."""
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    z0 = min(v.co.z for v in obj.data.vertices)
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    for v in obj.data.vertices:
+        v.co.x -= cx
+        v.co.y -= cy
+        v.co.z -= z0
+
+
+def centrar_sin_relieve(obj):
+    """Papel picado: plano, así que el mapa de normales solo pesa."""
+    centrar(obj)
+    for mat in obj.data.materials:
+        bsdf = mat.node_tree.nodes.get("Principled BSDF")
+        for enlace in list(bsdf.inputs["Normal"].links) if bsdf else []:
+            mat.node_tree.links.remove(enlace)
+
+
+def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512, unir=False, formato="JPEG"):
     """Une las mallas de un GLB de Sketchfab, las reduce y exporta con texturas de `px` px."""
     limpiar()
     importar(os.path.join(SKETCHFAB, archivo))
@@ -140,7 +166,7 @@ def reducir_sketchfab(archivo, caras, salida, limpiar_malla=None, px=512, unir=F
             img.scale(px, px)
     if limpiar_malla:
         limpiar_malla(obj)
-    exportar(salida)
+    exportar(salida, formato=formato)
 
 
 # ---------------------------------------------------------------- maguey (obstáculo)
@@ -155,3 +181,7 @@ reducir_sketchfab("takis_fuego_-_mexico.glb", 5000, "takis.glb")
 # ---------------------------------------------------------------- camino de grava (piso)
 # Llena toda la pantalla: conserva la textura de 1024 px.
 reducir_sketchfab("gravel_road.glb", 12000, "camino.glb", px=1024, unir=True)
+
+# ---------------------------------------------------------------- cerca y papel picado
+reducir_sketchfab("wooden_fence_-19mb.glb", 3000, "valla.glb", centrar)
+reducir_sketchfab("papel_picado_del_dia_de_muertos.glb", 200, "papel_picado.glb", centrar_sin_relieve, px=256, formato="AUTO")

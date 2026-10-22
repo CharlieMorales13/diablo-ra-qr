@@ -311,8 +311,12 @@ function crearPuerta(pregunta, z, ultima = false) {
     poste.position.set(x, 0.11, 0);
     g.add(poste);
   }
-  // papel picado sobre la puerta
-  for (let i = 0; i < 10; i++) {
+  // papel picado sobre la puerta (el modelo de Sketchfab, o banderitas de color si no cargó)
+  if (modelos.papel) {
+    const papel = modelos.papel.clone();
+    papel.position.y = 0.19;
+    g.add(papel);
+  } else for (let i = 0; i < 10; i++) {
     const banderita = new THREE.Mesh(new THREE.PlaneGeometry(0.06, 0.04), new THREE.MeshStandardMaterial({ color: colores[i % 5], side: THREE.DoubleSide }));
     banderita.position.set(-0.32 + i * 0.071, 0.2, 0);
     g.add(banderita);
@@ -324,7 +328,7 @@ function crearPuerta(pregunta, z, ultima = false) {
   });
   if (ultima) { // la entrada al Valle: la Guelaguetza
     const meta = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.1), new THREE.MeshBasicMaterial({ map: texturaLetrero('¡GUELAGUETZA!') }));
-    meta.position.y = 0.28;
+    meta.position.y = 0.4;
     g.add(meta);
   }
   return { tipo: 'puerta', obj: g, z, pregunta, opciones, intruso, resuelta: false };

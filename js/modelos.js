@@ -72,6 +72,20 @@ function mezcalProcedural() {
 }
 
 // cerca de carrizo que tapa los 3 carriles: hay que saltarla (mide 7 cm, el salto sube 13)
+// La cerca escaneada es alta: a escala del salto queda angosta, así que se
+// ponen 4 tramos seguidos para tapar los tres carriles.
+function cercaDeTramos(escena) {
+  const tramo = normalizar(escena, 0.08);
+  const ancho = new THREE.Box3().setFromObject(tramo).getSize(new THREE.Vector3()).x;
+  const g = new THREE.Group();
+  for (let i = 0; i < 4; i++) {
+    const t = i ? tramo.clone() : tramo;
+    t.position.x = (i - 1.5) * ancho * 0.97;
+    g.add(t);
+  }
+  return g;
+}
+
 function vallaProcedural() {
   const g = new THREE.Group();
   for (const x of [-0.31, 0.31]) {
@@ -95,12 +109,14 @@ function vallaProcedural() {
 }
 
 export async function cargarModelos() {
-  const [diablo, maguey, takis, mezcal, camino] = await Promise.all([
+  const [diablo, maguey, takis, mezcal, camino, valla, papel] = await Promise.all([
     cargarGLB('assets/models/diablo.glb'),
     cargarGLB('assets/models/maguey.glb'),
     cargarGLB('assets/models/takis.glb'),
     cargarGLB('assets/models/mezcal.glb'),
     cargarGLB('assets/models/camino.glb'),
+    cargarGLB('assets/models/valla.glb'),
+    cargarGLB('assets/models/papel_picado.glb'),
   ]);
   return {
     diablo: diablo
@@ -110,7 +126,8 @@ export async function cargarModelos() {
     maguey: maguey ? normalizar(maguey.scene, 0.11) : magueyProcedural(), // agave escaneado
     takis: takis ? normalizar(takis.scene, 0.12) : takisProcedural(), // grandes para que se vean
     mezcal: mezcal ? normalizar(mezcal.scene, 0.08) : mezcalProcedural(),
-    valla: vallaProcedural(),
+    valla: valla ? cercaDeTramos(valla.scene) : vallaProcedural(),
+    papel: papel ? normalizar(papel.scene, 0.13) : null, // banderitas sobre cada puerta
     camino: camino?.scene ?? null, // grava escaneada; sin ella queda el camino dibujado
   };
 }

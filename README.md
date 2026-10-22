@@ -54,7 +54,7 @@ js/preguntas.js       banco de preguntas "atrapa al intruso"
 js/modelos.js         carga de GLB con respaldo procedural
 js/audio.js           música y efectos con Web Audio
 assets/targets.mind   marcador compilado para MindAR
-assets/models/        diablo.glb, maguey.glb (agave), mezcal.glb, takis.glb, camino.glb (grava)
+assets/models/        diablo.glb, maguey.glb (agave), mezcal.glb, takis.glb, camino.glb (grava), valla.glb, papel_picado.glb
 modelos/              script de Blender que prepara los modelos
 marcador/             generador del marcador y compilador de MindAR
 ```
@@ -104,6 +104,8 @@ El script imprime los puntos de rastreo, la simetría y si el QR se lee, y guard
 | `diablo.glb` | Diablo de Juxtlahuaca generado con **Meshy AI** a partir de mi prompt, con rig automático y animaciones | Malla de 211 k a 20 k triángulos (se reduce en reposo y conserva los pesos del rig), texturas de 2048 a 1024 px y solo las animaciones `Alert` (de frente al inicio), `Running` (al correr) y `All_Night_Dance` (pantalla final). De 18 MB a 1.7 MB. | 1.7 MB |
 | `maguey.glb` | [Agave Americana](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6), escaneo de Discobolo | De 1 M triángulos y 48 MB a 16 k. Se le quita el cuadro de tierra del escaneo por color de textura (café contra verde) y altura. | 582 KB |
 | `mezcal.glb` | [Malaespina Mezcal bottle](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) de santibanezjuan | Malla a 4 k triángulos y texturas de 512 px | 305 KB |
+| `valla.glb` | [Wooden fence -19MB](https://sketchfab.com/3d-models/wooden-fence-19mb-c59c953b026743e898c59e009c9811b4) de adventurer | Reducida a 3 k caras; en el juego van 4 tramos seguidos para tapar los 3 carriles | |
+| `papel_picado.glb` | [Papel Picado del Dia de muertos](https://sketchfab.com/3d-models/papel-picado-del-dia-de-muertos-38c0aa70f7c944dbbbbf68d1a0012622) de Sandra.Arandano | PNG con transparencia; va sobre cada puerta | |
 | `camino.glb` | [gravel road](https://sketchfab.com/3d-models/gravel-road-5c29774fd35f4c85a531d6abd7ceef34) de SPLEEN VISION | Escaneo de 158 k caras reducido a 12 k con la textura de 1024 px y filtrado anisotrópico para que se vea nítido en ángulo. En el juego se usan 3 tramos que se reciclan al pasar, aplanados para que el Diablo no se hunda en los baches. | 2.4 MB |
 | `takis.glb` | [Takis Fuego - México](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) de Luiss Maker | Malla a 5 k triángulos y texturas de 512 px | 176 KB |
 
@@ -130,6 +132,8 @@ En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, 
 | Diablo de Juxtlahuaca (prompt propio, rig y animaciones) | Generado con [Meshy AI](https://www.meshy.ai), plan gratuito | CC BY 4.0 |
 | Agave (*Agave Americana*) | [Discobolo · Sketchfab](https://sketchfab.com/3d-models/agave-americana-efe126efa459471c81cfc3132357b1b6) | CC BY 4.0 |
 | Botella de mezcal (*Malaespina Mezcal bottle*) | [santibanezjuan · Sketchfab](https://sketchfab.com/3d-models/malaespina-mezcal-bottle-8c5ae788601b4e83931da9e4e28d8baf) | CC BY 4.0 |
+| Cerca de varas (*Wooden fence -19MB*) | [adventurer · Sketchfab](https://sketchfab.com/3d-models/wooden-fence-19mb-c59c953b026743e898c59e009c9811b4) | CC BY 4.0 |
+| Papel picado (*Papel Picado del Dia de muertos*) | [Sandra.Arandano · Sketchfab](https://sketchfab.com/3d-models/papel-picado-del-dia-de-muertos-38c0aa70f7c944dbbbbf68d1a0012622) | CC BY 4.0 |
 | Camino de grava (*gravel road*) | [SPLEEN VISION · Sketchfab](https://sketchfab.com/3d-models/gravel-road-5c29774fd35f4c85a531d6abd7ceef34) | CC BY 4.0 |
 | Bolsa de Takis (*Takis Fuego - México*) | [Luiss Maker · Sketchfab](https://sketchfab.com/3d-models/takis-fuego-mexico-7426e5fa188344668ec3b9dbab348bae) | CC BY 4.0 |
 | Efectos de sonido | Sintetizados en código (`js/audio.js`), autoría propia | MIT |
