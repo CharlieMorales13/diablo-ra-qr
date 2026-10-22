@@ -74,6 +74,14 @@ function mezcalProcedural() {
 // cerca de carrizo que tapa los 3 carriles: hay que saltarla (mide 7 cm, el salto sube 13)
 // La cerca escaneada es alta: a escala del salto queda angosta, así que se
 // ponen 4 tramos seguidos para tapar los tres carriles.
+// Papel de china: sin sombreado, así se ve con sus colores aunque la luz venga de atrás.
+function sinSombra(escena) {
+  escena.traverse(o => {
+    if (o.material) o.material = new THREE.MeshBasicMaterial({ map: o.material.map, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide });
+  });
+  return escena;
+}
+
 function cercaDeTramos(escena) {
   const tramo = normalizar(escena, 0.08);
   const ancho = new THREE.Box3().setFromObject(tramo).getSize(new THREE.Vector3()).x;
@@ -127,7 +135,7 @@ export async function cargarModelos() {
     takis: takis ? normalizar(takis.scene, 0.12) : takisProcedural(), // grandes para que se vean
     mezcal: mezcal ? normalizar(mezcal.scene, 0.08) : mezcalProcedural(),
     valla: valla ? cercaDeTramos(valla.scene) : vallaProcedural(),
-    papel: papel ? normalizar(papel.scene, 0.13) : null, // banderitas sobre cada puerta
+    papel: papel ? normalizar(sinSombra(papel.scene), 0.13) : null, // banderitas sobre cada puerta
     camino: camino?.scene ?? null, // grava escaneada; sin ella queda el camino dibujado
   };
 }

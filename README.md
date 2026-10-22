@@ -119,9 +119,9 @@ En el juego cada modelo se escala solo (Diablo 24 cm, agave 11 cm, mezcal 8 cm, 
 
 ## Capturas
 
-| Partida | Pantalla final |
-|---|---|
-| ![Partida](docs/capturas/juego.png) | ![Final](docs/capturas/final.png) |
+| Menú | Pregunta | Pantalla final |
+|---|---|---|
+| ![Menú](docs/capturas/menu.png) | ![Partida](docs/capturas/juego.png) | ![Final](docs/capturas/final.png) |
 
 ## Créditos y licencias
 
