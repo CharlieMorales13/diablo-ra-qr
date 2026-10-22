@@ -207,3 +207,97 @@ export const PREGUNTAS = [
     dato: 'Los chinelos son de Morelos. Las calendas llevan marmotas, monos y banda.',
   },
 ];
+
+// Dificultad media: cultura general de Oaxaca, para quien no es de aquí.
+export const PREGUNTAS_GENERALES = [
+  {
+    pista: 'Comida oaxaqueña: atrapa al intruso',
+    opciones: ['Tlayuda', 'Mole negro', 'Cochinita pibil'], intruso: 2,
+    dato: 'La cochinita pibil es de Yucatán. La tlayuda y el mole negro son de Oaxaca.',
+  },
+  {
+    pista: '¿Qué bebida NO es típica de Oaxaca?',
+    opciones: ['Mezcal', 'Tejate', 'Tequila'], intruso: 2,
+    dato: 'El tequila es de Jalisco. El mezcal y el tejate son oaxaqueños.',
+  },
+  {
+    pista: '¿Qué NO es una fiesta de Oaxaca?',
+    opciones: ['Guelaguetza', 'Noche de Rábanos', 'Carnaval de Veracruz'], intruso: 2,
+    dato: 'La Guelaguetza es en julio y la Noche de Rábanos el 23 de diciembre.',
+  },
+  {
+    pista: 'Artesanías oaxaqueñas: atrapa al intruso',
+    opciones: ['Alebrijes', 'Barro negro', 'Talavera'], intruso: 2,
+    dato: 'La talavera es de Puebla. Los alebrijes de copal y el barro negro son de Oaxaca.',
+  },
+  {
+    pista: '¿Qué zona arqueológica NO está en Oaxaca?',
+    opciones: ['Monte Albán', 'Mitla', 'Chichén Itzá'], intruso: 2,
+    dato: 'Chichén Itzá está en Yucatán.',
+  },
+  {
+    pista: '¿Quién NO nació en Oaxaca?',
+    opciones: ['Benito Juárez', 'Rufino Tamayo', 'Frida Kahlo'], intruso: 2,
+    dato: 'Frida Kahlo nació en Coyoacán. Juárez nació en Guelatao y Tamayo en la ciudad de Oaxaca.',
+  },
+  {
+    pista: '¿Qué playa NO está en Oaxaca?',
+    opciones: ['Puerto Escondido', 'Huatulco', 'Cancún'], intruso: 2,
+    dato: 'Cancún está en Quintana Roo.',
+  },
+  {
+    pista: '¿Cómo NO se le dice al queso de Oaxaca?',
+    opciones: ['Quesillo', 'Queso de hebra', 'Queso manchego'], intruso: 2,
+    dato: 'En Oaxaca se le dice quesillo: se estira y se enrolla en bola.',
+  },
+  {
+    pista: 'Lenguas de Oaxaca: atrapa al intruso',
+    opciones: ['Zapoteco', 'Mixteco', 'Maya yucateco'], intruso: 2,
+    dato: 'En Oaxaca viven 16 pueblos originarios, entre ellos zapotecos y mixtecos.',
+  },
+  {
+    pista: 'Chapulines: ¿qué es falso?',
+    opciones: ['Se comen tostados', 'Son saltamontes', 'Son un tipo de pez'], intruso: 2,
+    dato: 'Los chapulines son saltamontes tostados con ajo, limón y chile.',
+  },
+  {
+    pista: 'Árbol del Tule: ¿qué es falso?',
+    opciones: ['Es un ahuehuete', 'Está en Santa María del Tule', 'Es un pino'], intruso: 2,
+    dato: 'Es un ahuehuete con uno de los troncos más anchos del mundo.',
+  },
+  {
+    pista: 'Chocolate oaxaqueño: atrapa al intruso',
+    opciones: ['Se toma caliente', 'Se bate con molinillo', 'Se hace con uva'], intruso: 2,
+    dato: 'Se hace con cacao, azúcar y canela, y se bate con molinillo.',
+  },
+  {
+    pista: 'Día de Muertos: ¿qué NO va en el altar?',
+    opciones: ['Cempasúchil', 'Pan de muerto', 'Árbol de Navidad'], intruso: 2,
+    dato: 'El color y el olor del cempasúchil guían a las almas.',
+  },
+  {
+    pista: 'Ciudad de Oaxaca: ¿qué es falso?',
+    opciones: ['Se llama Oaxaca de Juárez', 'Su centro es Patrimonio Mundial', 'Está junto al mar'], intruso: 2,
+    dato: 'Está en los Valles Centrales. Su centro y Monte Albán son Patrimonio Mundial desde 1987.',
+  },
+  {
+    pista: 'Guelaguetza: ¿qué es falso?',
+    opciones: ['Se baila en el Cerro del Fortín', 'Participan las regiones', 'Es en diciembre'], intruso: 2,
+    dato: 'Es en julio: los Lunes del Cerro.',
+  },
+  {
+    pista: '¿De qué NO se hace el mezcal?',
+    opciones: ['Maguey espadín', 'Maguey tobalá', 'Uva'], intruso: 2,
+    dato: 'Se hace con la piña del maguey cocida en horno de tierra.',
+  },
+  {
+    pista: 'Tlayuda: ¿qué es falso?',
+    opciones: ['Es una tortilla grande', 'Lleva asiento y frijol', 'Se hace con pan'], intruso: 2,
+    dato: 'Lleva asiento, frijol, quesillo y tasajo o cecina.',
+  },
+  {
+    pista: 'Hierve el Agua: ¿qué es falso?',
+    opciones: ['Tiene cascadas petrificadas', 'Está en Oaxaca', 'Es un volcán activo'], intruso: 2,
+    dato: 'Son cascadas de minerales que parecen congeladas, cerca de Mitla.',
+  },
+];

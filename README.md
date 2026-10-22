@@ -24,19 +24,19 @@ El marcador puede estar en una mesa o en la pared. En cuanto MindAR lo reconoce,
 | **Obstáculos** | Agaves en un carril (esquívalos o sáltalos: −30 si chocas) y cercas de carrizo que tapan los 3 carriles (solo se saltan: chocar cuesta un ❤). |
 | **Premios** | Bolsa de **Takis** +25. **Botella de mezcal**: +50 y 4 s de turbo, más rápido y atravesando los obstáculos. |
 | **Puntaje** | Acierto: +100 con combo x2 y x3, y el Diablo acelera. Cada puerta sube un poco la velocidad. |
-| **Dificultad** | **Media**, **Difícil** y **Muy difícil**: cambian la velocidad inicial (0.32, 0.42 y 0.54 marcadores por segundo), la aceleración, los obstáculos por tramo (2, 3 y 4), qué tan seguido sale la cerca y las vidas (3, 3 y 2). Hay récord por dificultad. |
+| **Dificultad** | **Media**: preguntas de cultura general de Oaxaca, más lenta (0.26 marcadores por segundo), 1 obstáculo por tramo y 4 vidas. **Difícil** y **Muy difícil**: preguntas para oaxaqueños, velocidad 0.42 y 0.54, 3 y 4 obstáculos por tramo, más cercas y 3 y 2 vidas. Hay récord por dificultad. |
 | **Tutorial** | La primera vez se juega un tutorial de 8 pasos que pausa la acción y explica cada cosa: Takis, agave, salto, cerca y cómo cruzar por el intruso. Se puede repetir con el botón **Tutorial**. |
 | **Vidas** | Cada intruso que se escapa o cada cerca que no saltas cuesta un ❤. |
 | **Fin** | Al cruzar las 8 puertas o al perder las 3 vidas. El Diablo voltea hacia ti y baila, y se muestra un rango: *Turista*, *Fuereño curioso*, *Paisano* u *Oaxaqueño de corazón*, y el récord del teléfono. |
 | **Retroalimentación** | Cada cambio de carril suena y vibra. Un acierto lanza confeti, un acorde y una vibración corta. Un error hace un destello rojo, un zumbido y una vibración doble. Con turbo, la pantalla se enciende con un borde de fuego. |
 
-El banco tiene **41 preguntas para oaxaqueños**: regiones, los 7 moles, magueyes silvestres, días de plaza, pueblos artesanos, Monte Albán, Guelaguetza, calendas, el carnaval putleco y más. En cada partida salen 12 al azar y, después de cada puerta, aparece un dato curioso.
+Hay **18 preguntas de cultura general** para la dificultad media y **41 preguntas para oaxaqueños** para difícil y muy difícil: regiones, los 7 moles, magueyes silvestres, días de plaza, pueblos artesanos, Monte Albán, Guelaguetza, calendas, el carnaval putleco y más. En cada partida salen 12 al azar y, después de cada puerta, aparece un dato curioso.
 
 ## Herramientas
 
 - [MindAR](https://github.com/hiukim/mind-ar-js) 1.2.5: rastreo de imagen en el navegador.
 - [three.js](https://threejs.org/) 0.160: render 3D y carga de GLB.
-- Web Audio API: música y efectos sintetizados en código.
+- Web Audio API: música tipo guitarra (síntesis de cuerda pulsada Karplus-Strong) y efectos, todo sintetizado en código.
 - Vibration API: retroalimentación háptica en Android.
 - Python + Pillow + qrcode + OpenCV: generación y análisis del marcador.
 - Meshy AI: modelo del Diablo con rig y animaciones.

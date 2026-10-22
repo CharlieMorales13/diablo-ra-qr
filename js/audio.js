@@ -52,23 +52,59 @@ export function sfx(name) {
   SFX[name]?.(ctx.currentTime);
 }
 
-// Melodía en 6/8 al estilo de chilena (escala mayor, bajo alternado).
-const MELODIA = [659, 0, 784, 880, 0, 784, 659, 0, 587, 523, 0, 587, 659, 0, 784, 880, 988, 880, 784, 0, 659, 587, 0, 0];
-const BAJO = [131, 0, 0, 196, 0, 0, 147, 0, 0, 196, 0, 0];
+// Guitarra sintetizada con Karplus-Strong: un golpe de ruido que recorre una
+// cuerda virtual (retardo + promedio) suena a cuerda pulsada. Cada nota se
+// calcula una vez y se reutiliza.
+const cuerdas = new Map();
+function cuerda(freq) {
+  if (!cuerdas.has(freq)) {
+    const sr = ctx.sampleRate;
+    const buf = ctx.createBuffer(1, Math.round(sr * 1.4), sr);
+    const d = buf.getChannelData(0);
+    const p = Math.round(sr / freq);
+    for (let i = 0; i < p; i++) d[i] = Math.random() * 2 - 1;
+    for (let i = p; i < d.length; i++) d[i] = 0.497 * (d[i - p] + (d[i - p - 1] ?? 0));
+    cuerdas.set(freq, buf);
+  }
+  return cuerdas.get(freq);
+}
 
-export function startMusic(bpm = 150) {
+function pulsar(freq, t, vol) {
+  const s = ctx.createBufferSource();
+  const g = ctx.createGain();
+  s.buffer = cuerda(freq);
+  g.gain.value = vol;
+  s.connect(g).connect(master);
+  s.start(t);
+}
+
+// Son rápido en 6/8 en Re mayor: bajo en 1 y 4, rasgueo en 3 y 6 y la melodía
+// encima. Progresión Re – Sol – La – Re, dos frases de 4 compases.
+const ACORDES = {
+  D: { bajo: [73, 110], rasgueo: [147, 220, 294, 370] },
+  G: { bajo: [98, 147], rasgueo: [98, 147, 196, 247] },
+  A: { bajo: [110, 82], rasgueo: [110, 165, 220, 277] },
+};
+const COMPASES = ['D', 'G', 'A', 'D', 'D', 'G', 'A', 'D'];
+const MELODIA = [
+  740, 0, 880, 740, 0, 587, /**/ 784, 0, 988, 784, 0, 587, /**/ 659, 0, 554, 659, 0, 880, /**/ 740, 659, 587, 0, 0, 0,
+  880, 0, 740, 587, 0, 740, /**/ 988, 0, 784, 587, 0, 784, /**/ 880, 0, 659, 554, 0, 659, /**/ 587, 0, 0, 440, 0, 0,
+];
+const OCTAVO = 0.13; // segundos por corchea: alegre y con prisa, como la carrera
+
+export function startMusic() {
   if (!ctx || musicTimer) return;
-  const step = 60 / bpm / 2;
   let i = 0;
   let next = ctx.currentTime + 0.1;
   musicTimer = setInterval(() => {
     while (next < ctx.currentTime + 0.3) {
+      const acorde = ACORDES[COMPASES[Math.floor(i / 6) % COMPASES.length]];
+      const paso = i % 6;
+      if (paso === 0 || paso === 3) pulsar(acorde.bajo[paso / 3], next, 0.5);
+      if (paso === 2 || paso === 5) acorde.rasgueo.forEach((f, k) => pulsar(f, next + k * 0.012, 0.16)); // rasgueo
       const m = MELODIA[i % MELODIA.length];
-      const b = BAJO[i % BAJO.length];
-      if (m) tone(m, next, step * 0.9, { type: 'triangle', vol: 0.05 });
-      if (b) tone(b, next, step * 1.8, { type: 'sine', vol: 0.12 });
-      if (i % 3 === 0) noise(next, 0.03, 0.04);
-      next += step;
+      if (m) pulsar(m, next, 0.3);
+      next += OCTAVO;
       i++;
     }
   }, 100);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { MindARThree } from 'mindar-image-three';
-import { PREGUNTAS } from './preguntas.js';
+import { PREGUNTAS, PREGUNTAS_GENERALES } from './preguntas.js';
 import { initAudio, sfx, startMusic, stopMusic, vibrar } from './audio.js';
 import { cargarModelos } from './modelos.js';
 
@@ -22,7 +22,7 @@ const VISTA = { altura: 0.6, atras: 1.25, mira: -0.3 }; // ponytail: encuadre fi
 const DESPEGUE = 0.9; // segundos que tarda el camino en salir del marcador
 const VELOCIDAD_ANIMACION = 0.32; // velocidad a la que la animación de correr se ve natural
 const DIFICULTADES = {
-  media: { nombre: 'Media', velocidad: 0.32, aceleracion: 1.04, vidas: 3, obstaculos: 2, valla: 0.35 },
+  media: { nombre: 'Media', velocidad: 0.26, aceleracion: 1.02, vidas: 4, obstaculos: 1, valla: 0.2, preguntas: PREGUNTAS_GENERALES },
   dificil: { nombre: 'Difícil', velocidad: 0.42, aceleracion: 1.05, vidas: 3, obstaculos: 3, valla: 0.6 },
   'muy-dificil': { nombre: 'Muy difícil', velocidad: 0.54, aceleracion: 1.06, vidas: 2, obstaculos: 4, valla: 0.85 },
 };
@@ -201,7 +201,7 @@ function nuevoEstado(tutorial) {
     turbo: 0,
     transicion: 0,
     entidades: [],
-    bolsa: barajar([...PREGUNTAS]).slice(0, TOTAL_PUERTAS),
+    bolsa: barajar([...(dif.preguntas ?? PREGUNTAS)]).slice(0, TOTAL_PUERTAS),
     puertaActual: null,
   };
 }
