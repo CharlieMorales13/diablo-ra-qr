@@ -13,7 +13,7 @@ Una experiencia móvil que, al reconocer un marcador propio, despliegue un juego
 El Diablo se quedó dormido en la Sierra Norte de Juárez y sus compañeros se fueron a la Guelaguetza sin él: tiene que bajar corriendo al Valle de Oaxaca. Al apuntar al marcador, el camino sale del papel y el Diablo espera en alerta. Al tocar «¡A correr!» se voltea y la vista pasa detrás de él, como en Minion Rush. Deslizas el dedo para cambiar de carril y hacia arriba para saltar agaves y cercas de carrizo; el mezcal le da turbo y los Takis suman puntos. Frente a cada una de las 8 puertas se detiene: dos letreros son ciertos y uno es *el intruso*, y hay que cruzar por él. Al final baila mientras recibes un rango de "Turista" a "Oaxaqueño de corazón".
 
 🛠️ **Herramientas**
-MindAR para reconocer el marcador, three.js para el 3D, Meshy AI para generar al Diablo con sus animaciones, Blender para bajarlo de 18 MB a 1.5 MB sin romper el rig, modelos CC BY 4.0 de Sketchfab (agave, mezcal, Takis y un camino de grava escaneado), Web Audio API para una música tipo guitarra y los efectos, todo sintetizado en código, y Python con OpenCV para el marcador.
+MindAR para reconocer el marcador, three.js para el 3D, Meshy AI para generar al Diablo con sus animaciones, Blender para bajarlo de 18 MB a 1.5 MB sin romper el rig, modelos CC BY 4.0 de Sketchfab (agave, mezcal, Takis y un camino de grava escaneado), Web Audio API para los efectos de sonido, y Python con OpenCV para el marcador.
 
 🧩 **Retos**
 1. **El marcador.** Un QR solo es muy repetitivo y el rastreador se pierde. Le agregué grecas de Mitla, una muesca asimétrica y tipografía grande, y lo medí con OpenCV hasta unos 9,000 puntos de rastreo.
